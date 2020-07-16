@@ -23,6 +23,7 @@
 			</view>
 		</view>
 
+		<!-- 二级标题 -->
 		<view class="sub-title">
 			<view class="left">
 				<view>活动报名</view>
@@ -34,6 +35,82 @@
 				<view class="more">更多</view>
 			</view>
 		</view>
+		<!-- 活动列表 -->
+		<view class="activity-list">
+			<view class="activity-item">
+				<image src="../../../static/img/占位图.png" mode="aspectFill"></image>
+				<view class="activity-info">
+					<view class="title">atam半手倒立基础课程详解</view>
+					<view class="content">
+						<view class="time">
+							<icon type="waiting" size="36upx" color="#DD524D" />活动时间：<text>2020.07.15-08.15</text></view>
+						<view class="price">￥<text>198</text></view>
+					</view>
+				</view>
+				<view class="btn">报名</view>
+			</view>
+			<view class="activity-item">
+				<image src="../../../static/img/占位图.png" mode="aspectFill"></image>
+				<view class="activity-info">
+					<view class="title">atam半手倒立基础课程详解</view>
+					<view class="content">
+						<view class="time">
+							<icon type="waiting" size="36upx" color="#DD524D" />活动时间：<text>2020.07.15-08.15</text></view>
+						<view class="price">￥<text>198</text></view>
+					</view>
+				</view>
+				<view class="btn">报名</view>
+			</view>
+		</view>
+		<!-- 二级标题 -->
+		<view class="sub-title">
+			<view class="left">
+				<view>纪念品类</view>
+				<text></text>
+			</view>
+			<view class="right">
+				<view class="more">更多</view>
+			</view>
+		</view>
+		<!-- 商品列表 -->
+		<view class="goods-list">
+			<view class="goods-item">
+				<image src="../../../static/img/goods/p7.jpg" mode="aspectFill"></image>
+				<view class="right">
+					<view class="goods-title">
+						<text class="tag">YOGA</text>
+						<text>2020中国成语商人万人瑜伽大会纪念章</text>
+					</view>
+
+					<view class="price-box">
+						<view class="goods-price">
+							￥<text>198</text>
+							<text class="old-price">￥500.00</text>
+						</view>
+						<view class="btn">立即购买</view>
+					</view>
+				</view>
+			</view>
+			<view class="goods-item">
+				<image src="../../../static/img/goods/p7.jpg" mode="aspectFill"></image>
+				<view class="right">
+					<view class="goods-title">
+						<text class="tag">YOGA</text>
+						<text>2020中国成语商人万人瑜伽大会纪念章</text>
+					</view>
+			
+					<view class="price-box">
+						<view class="goods-price">
+							￥<text>198</text>
+							<text class="old-price">￥500.00</text>
+						</view>
+						<view class="btn">立即购买</view>
+					</view>
+				</view>
+			</view>
+		</view>
+		<!-- 提示 -->
+		<view class="bottom-tip">您看到我的底线了</view>
 	</view>
 </template>
 
@@ -105,7 +182,9 @@
 				this.productList.push(p);
 			}
 		},
-		onLoad() {},
+		onLoad() {
+			this.iconType = ['success', 'success_no_circle', 'info', 'warn', 'waiting', 'cancel', 'download', 'search', 'clear']
+		},
 		methods: {
 			//加载Promotion 并设定倒计时,,实际应用中应该是ajax加载此数据。
 			loadPromotion() {
@@ -324,15 +403,17 @@
 			}
 		}
 	}
-	
+
 	.sub-title {
 		margin: 50upx 30upx;
 		height: 60upx;
 		display: flex;
 		justify-content: space-between;
+
 		.left {
 			width: 300upx;
 			position: relative;
+
 			view {
 				position: absolute;
 				top: 0;
@@ -340,6 +421,7 @@
 				font-weight: 550;
 				z-index: 2;
 			}
+
 			text {
 				position: absolute;
 				top: 20upx;
@@ -351,16 +433,151 @@
 				z-index: 1;
 			}
 		}
+
 		.right {
 			flex: 1;
-			font-size: 20upx;
+			font-size: 24upx;
 			display: flex;
-			justify-content: space-around;
+			justify-content: flex-end;
 			align-items: flex-end;
+
+			view {
+				margin-left: 40upx;
+			}
+
 			.more {
 				color: #bbb;
 			}
 		}
 	}
 
+	.activity-list {
+		padding: 0 30upx;
+
+		.activity-item {
+			position: relative;
+			overflow: hidden;
+			margin-bottom: 40upx;
+			border-radius: 15upx;
+			box-shadow: 0upx 5upx 20upx rgba(0, 0, 0, 0.2);
+
+			image {
+				width: 100%;
+				height: 400upx;
+			}
+
+			.activity-info {
+				padding: 20upx;
+
+				.title {
+					font-size: 38upx;
+				}
+
+				.content {
+					display: flex;
+					justify-content: space-between;
+					align-items: flex-end;
+					margin-top: 30upx;
+					font-size: 28upx;
+					color: #333;
+
+					.time {
+						display: flex;
+						align-items: flex-end;
+
+						icon {
+							padding: 10upx;
+							margin-bottom: -10upx;
+							vertical-align: bottom;
+						}
+					}
+
+					.price {
+						color: black;
+						font-size: 24upx;
+						font-weight: 550;
+						text {
+							font-size: 36upx;
+							vertical-align: baseline;
+						}
+					}
+				}
+			}
+
+			.btn {
+				position: absolute;
+				top: 350upx;
+				right: 50upx;
+				width: 100upx;
+				height: 100upx;
+				line-height: 100upx;
+				text-align: center;
+				font-size: 36upx;
+				background-color: #DD524D;
+				color: white;
+				border-radius: 50%;
+			}
+		}
+	}
+	.goods-list {
+		padding: 0 30upx;
+		.goods-item {
+			margin-bottom: 80upx;
+			display: flex;
+			image {
+				width: 200upx;
+				height: 200upx;
+			}
+			.right {
+				flex: 1;
+				margin-left: 20upx;
+				display: flex;
+				flex-direction: column;
+				justify-content: space-between;
+				.goods-title {
+					.tag {
+						background-color: #9165BA;
+						margin-right: 10upx;
+						padding: 2upx 16upx;
+						border-radius: 40upx;
+						color: white;
+					}
+					font-size: 30upx;
+				}
+				.price-box {
+					display: flex;
+					justify-content: space-between;
+					align-items: flex-end;
+					.goods-price {
+						font-size: 24upx;
+						color: black;
+						text {
+							font-size: 36upx;
+							font-weight: 550;
+							margin-right: 10upx;
+						}
+						.old-price {
+							color: #ccc;
+							font-weight: normal;
+							font-size: 24upx;
+							text-decoration: line-through;
+						}
+					}
+					.btn {
+						background-color: #DD524D;
+						color: white;
+						font-size: 30upx;
+						padding: 10upx 40upx;
+						border-radius: 50upx;
+					}
+				}
+			}
+		}
+	}
+	.bottom-tip {
+		color: #ccc;
+		font-size: 24upx;
+		text-align: center;
+		margin-bottom: 20upx;
+	}
 </style>
