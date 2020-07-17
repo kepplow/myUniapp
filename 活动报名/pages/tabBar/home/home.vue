@@ -98,7 +98,7 @@
 						<text class="tag">YOGA</text>
 						<text>2020中国成语商人万人瑜伽大会纪念章</text>
 					</view>
-			
+
 					<view class="price-box">
 						<view class="goods-price">
 							￥<text>198</text>
@@ -184,17 +184,28 @@
 		},
 		onLoad() {
 			this.iconType = ['success', 'success_no_circle', 'info', 'warn', 'waiting', 'cancel', 'download', 'search', 'clear']
+			// 请求微信登录信息
+			uni.request({
+				url: 'http://ct.sccdlc.com/api/wx/geturl',
+				method: 'POST',
+				success: (res) => {
+					console.log(res.data);
+					console.log(location)
+					location.href = res.data.data;
+				}
+			})
+			
 		},
 		methods: {
 			// 跳转到表单填写
-			goCommit (e) {
+			goCommit(e) {
 				console.log(222)
 				uni.navigateTo({
 					url: '../../activity/form'
 				});
 			},
 			// 跳转到活动详情页
-			goDetail () {
+			goDetail() {
 				console.log(1)
 				uni.navigateTo({
 					url: '../../activity/detail'
@@ -510,6 +521,7 @@
 						color: black;
 						font-size: 24upx;
 						font-weight: 550;
+
 						text {
 							font-size: 36upx;
 							vertical-align: baseline;
@@ -533,21 +545,26 @@
 			}
 		}
 	}
+
 	.goods-list {
 		padding: 0 30upx;
+
 		.goods-item {
 			margin-bottom: 80upx;
 			display: flex;
+
 			image {
 				width: 200upx;
 				height: 200upx;
 			}
+
 			.right {
 				flex: 1;
 				margin-left: 20upx;
 				display: flex;
 				flex-direction: column;
 				justify-content: space-between;
+
 				.goods-title {
 					.tag {
 						background-color: #9165BA;
@@ -556,20 +573,25 @@
 						border-radius: 40upx;
 						color: white;
 					}
+
 					font-size: 30upx;
 				}
+
 				.price-box {
 					display: flex;
 					justify-content: space-between;
 					align-items: flex-end;
+
 					.goods-price {
 						font-size: 24upx;
 						color: black;
+
 						text {
 							font-size: 36upx;
 							font-weight: 550;
 							margin-right: 10upx;
 						}
+
 						.old-price {
 							color: #ccc;
 							font-weight: normal;
@@ -577,6 +599,7 @@
 							text-decoration: line-through;
 						}
 					}
+
 					.btn {
 						background-color: #DD524D;
 						color: white;
@@ -588,6 +611,7 @@
 			}
 		}
 	}
+
 	.bottom-tip {
 		color: #ccc;
 		font-size: 24upx;
