@@ -37,7 +37,7 @@
 		</view>
 		<!-- 活动列表 -->
 		<view class="activity-list">
-			<view class="activity-item">
+			<view class="activity-item" @tap="goDetail">
 				<image src="../../../static/img/占位图.png" mode="aspectFill"></image>
 				<view class="activity-info">
 					<view class="title">atam半手倒立基础课程详解</view>
@@ -47,9 +47,9 @@
 						<view class="price">￥<text>198</text></view>
 					</view>
 				</view>
-				<view class="btn">报名</view>
+				<view class="btn" @tap.stop="goCommit">报名</view>
 			</view>
-			<view class="activity-item">
+			<view class="activity-item" @tap="goDetail">
 				<image src="../../../static/img/占位图.png" mode="aspectFill"></image>
 				<view class="activity-info">
 					<view class="title">atam半手倒立基础课程详解</view>
@@ -59,7 +59,7 @@
 						<view class="price">￥<text>198</text></view>
 					</view>
 				</view>
-				<view class="btn">报名</view>
+				<view class="btn" @tap.stop="goCommit">报名</view>
 			</view>
 		</view>
 		<!-- 二级标题 -->
@@ -163,29 +163,43 @@
 			uni.showToast({
 				title: '触发上拉加载'
 			});
-			let len = this.productList.length;
-			if (len >= 40) {
-				this.loadingText = '到底了';
-				return false;
-			}
-			// 演示,随机加入商品,生成环境请替换为ajax请求
-			let end_goods_id = this.productList[len - 1].goods_id;
-			for (let i = 1; i <= 10; i++) {
-				let goods_id = end_goods_id + i;
-				let p = {
-					goods_id: goods_id,
-					img: '/static/img/goods/p' + (goods_id % 10 == 0 ? 10 : goods_id % 10) + '.jpg',
-					name: '商品名称商品名称商品名称商品名称商品名称',
-					price: '￥168',
-					slogan: '1235人付款'
-				};
-				this.productList.push(p);
-			}
+			// let len = this.productList.length;
+			// if (len >= 40) {
+			// 	this.loadingText = '到底了';
+			// 	return false;
+			// }
+			// // 演示,随机加入商品,生成环境请替换为ajax请求
+			// let end_goods_id = this.productList[len - 1].goods_id;
+			// for (let i = 1; i <= 10; i++) {
+			// 	let goods_id = end_goods_id + i;
+			// 	let p = {
+			// 		goods_id: goods_id,
+			// 		img: '/static/img/goods/p' + (goods_id % 10 == 0 ? 10 : goods_id % 10) + '.jpg',
+			// 		name: '商品名称商品名称商品名称商品名称商品名称',
+			// 		price: '￥168',
+			// 		slogan: '1235人付款'
+			// 	};
+			// 	this.productList.push(p);
+			// }
 		},
 		onLoad() {
 			this.iconType = ['success', 'success_no_circle', 'info', 'warn', 'waiting', 'cancel', 'download', 'search', 'clear']
 		},
 		methods: {
+			// 跳转到表单填写
+			goCommit (e) {
+				console.log(222)
+				uni.navigateTo({
+					url: '../../activity/form'
+				});
+			},
+			// 跳转到活动详情页
+			goDetail () {
+				console.log(1)
+				uni.navigateTo({
+					url: '../../activity/detail'
+				});
+			},
 			//加载Promotion 并设定倒计时,,实际应用中应该是ajax加载此数据。
 			loadPromotion() {
 				let cutTime = new Date();

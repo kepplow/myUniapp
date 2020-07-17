@@ -63,6 +63,36 @@
 			}
 		},
 		{
+		    "path" : "pages/activity/detail",
+		    "style" : {
+				"navigationBarTitleText" : "",
+				"navigationBarBackgroundColor":"#f1f1f1",
+				"onReachBottomDistance":50,
+				"h5":{
+					"titleNView":false
+				},
+				"app-plus": {
+					"titleNView": false ,//禁用原生导航栏
+					"bounce":"none"
+				}
+			}
+		},
+		{
+		    "path" : "pages/activity/form",
+		    "style" : {
+				"navigationBarTitleText" : "",
+				"navigationBarBackgroundColor":"#f1f1f1",
+				"onReachBottomDistance":50,
+				"h5":{
+					"titleNView":false
+				},
+				"app-plus": {
+					"titleNView": false ,//禁用原生导航栏
+					"bounce":"none"
+				}
+			}
+		},
+		{
             "path" : "pages/goods/goods-list/goods-list",
             "style" : {
 				"navigationBarTitleText" : "",
@@ -87,6 +117,7 @@
 				}
 			}
 		},
+		
 		{
 			"path": "pages/login/login",
 			"style": {
