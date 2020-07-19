@@ -71,6 +71,7 @@
     "h5" : {
         "router" : {
             "mode" : "history"
-        }
+        },
+        "title" : "川体在线"
     }
 }

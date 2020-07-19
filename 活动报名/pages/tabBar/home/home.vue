@@ -1,20 +1,20 @@
 <template>
 	<view>
 
-		<!-- 占位 -->
-		<view class="place"></view>
+		<!-- 占位图，后期修改 -->
+		<view class="place" :style="`background-image: url(${theme.bg_img || '../../../static/img/image01.png'});`"></view>
 		<!-- 标题 -->
 		<view class="activity-title">
-			<text>2020·中国成渝双城万人瑜伽大会暨百万人民线上瑜伽大会</text>
+			<text>{{theme.title}}</text>
 
-			<view class="wx-avatar"></view>
+			<view class="wx-avatar" :style="`background-image: url(${userInfo.headimgurl});`"></view>
 		</view>
 		<!-- 轮播图 -->
 		<view class="swiper">
 			<view class="swiper-box">
 				<swiper circular="true" :indicator-dots="true" indicator-active-color="#D44D62" autoplay="true" @change="swiperChange">
-					<swiper-item v-for="swiper in swiperList" :key="swiper.id">
-						<image :src="swiper.img" @tap="toSwiper(swiper)"></image>
+					<swiper-item v-for="swiper in bannerData" :key="swiper.id">
+						<image :src="baseUrl + swiper.banner_img" @tap="toSwiper(swiper)"></image>
 					</swiper-item>
 				</swiper>
 				<view class="indicator">
@@ -30,40 +30,29 @@
 				<text></text>
 			</view>
 			<view class="right">
-				<view>线上活动</view>
-				<view>线下活动</view>
-				<view class="more">更多</view>
+				<view @tap="online">线上活动</view>
+				<view @tap="outline">线下活动</view>
+				<!-- <view class="more">更多</view> -->
 			</view>
 		</view>
 		<!-- 活动列表 -->
 		<view class="activity-list">
-			<view class="activity-item" @tap="goDetail">
-				<image src="../../../static/img/占位图.png" mode="aspectFill"></image>
+			<view class="activity-item" @tap="goDetail(item)" v-for="item in showActivitys" :key="item.avtive_id">
+				<image :src="baseUrl + item.active_images" mode="aspectFill"></image>
 				<view class="activity-info">
-					<view class="title">atam半手倒立基础课程详解</view>
+					<view class="title">{{item.title}}</view>
 					<view class="content">
 						<view class="time">
-							<icon type="waiting" size="36upx" color="#DD524D" />活动时间：<text>2020.07.15-08.15</text></view>
-						<view class="price">￥<text>198</text></view>
+							<icon type="waiting" size="36upx" color="#DD524D" />活动时间：<text>{{item.begin_time +' ' + item.end_time | timeFilter}}</text></view>
+						<!-- <view class="price">￥<text>{{item.price}}</text></view> -->
 					</view>
 				</view>
-				<view class="btn" @tap.stop="goCommit">报名</view>
+				<view class="btn" @tap.stop="goCommit(item)">报名</view>
 			</view>
-			<view class="activity-item" @tap="goDetail">
-				<image src="../../../static/img/占位图.png" mode="aspectFill"></image>
-				<view class="activity-info">
-					<view class="title">atam半手倒立基础课程详解</view>
-					<view class="content">
-						<view class="time">
-							<icon type="waiting" size="36upx" color="#DD524D" />活动时间：<text>2020.07.15-08.15</text></view>
-						<view class="price">￥<text>198</text></view>
-					</view>
-				</view>
-				<view class="btn" @tap.stop="goCommit">报名</view>
-			</view>
+
 		</view>
 		<!-- 二级标题 -->
-		<view class="sub-title">
+		<!-- <view class="sub-title">
 			<view class="left">
 				<view>纪念品类</view>
 				<text></text>
@@ -71,9 +60,9 @@
 			<view class="right">
 				<view class="more">更多</view>
 			</view>
-		</view>
+		</view> -->
 		<!-- 商品列表 -->
-		<view class="goods-list">
+		<!-- <view class="goods-list">
 			<view class="goods-item">
 				<image src="../../../static/img/goods/p7.jpg" mode="aspectFill"></image>
 				<view class="right">
@@ -108,7 +97,7 @@
 					</view>
 				</view>
 			</view>
-		</view>
+		</view> -->
 		<!-- 提示 -->
 		<view class="bottom-tip">您看到我的底线了</view>
 	</view>
@@ -118,6 +107,13 @@
 	export default {
 		data() {
 			return {
+				showActivitys: [],
+				theme: {},
+				oid: '',
+				userInfo: {},
+				baseUrl: 'http://47.106.246.68:8000/',
+				bannerData: [],
+				activityData: [],
 				showHeader: true,
 				afterHeaderOpacity: 1, //不透明度
 				headerPosition: 'fixed',
@@ -127,88 +123,100 @@
 				city: '北京',
 				currentSwiper: 0,
 				// 轮播图片
-				swiperList: [{
-						id: 1,
-						src: 'url1',
-						img: '/static/img/1.jpg'
-					},
-					{
-						id: 2,
-						src: 'url2',
-						img: '/static/img/2.jpg'
-					},
-					{
-						id: 3,
-						src: 'url3',
-						img: '/static/img/3.jpg'
-					}
-				],
+				swiperList: [],
 				loadingText: '正在加载...'
 			};
 		},
-		onPageScroll(e) {
-			//兼容iOS端下拉时顶部漂移
-			this.headerPosition = e.scrollTop >= 0 ? "fixed" : "absolute";
-			this.headerTop = e.scrollTop >= 0 ? null : 0;
-			this.statusTop = e.scrollTop >= 0 ? null : -this.statusHeight + 'px';
-		},
-		//下拉刷新，需要自己在page.json文件中配置开启页面下拉刷新 "enablePullDownRefresh": true
-		onPullDownRefresh() {
-			setTimeout(function() {
-				uni.stopPullDownRefresh();
-			}, 1000);
-		},
-		//上拉加载，需要自己在page.json文件中配置"onReachBottomDistance"
-		onReachBottom() {
-			uni.showToast({
-				title: '触发上拉加载'
-			});
-			// let len = this.productList.length;
-			// if (len >= 40) {
-			// 	this.loadingText = '到底了';
-			// 	return false;
-			// }
-			// // 演示,随机加入商品,生成环境请替换为ajax请求
-			// let end_goods_id = this.productList[len - 1].goods_id;
-			// for (let i = 1; i <= 10; i++) {
-			// 	let goods_id = end_goods_id + i;
-			// 	let p = {
-			// 		goods_id: goods_id,
-			// 		img: '/static/img/goods/p' + (goods_id % 10 == 0 ? 10 : goods_id % 10) + '.jpg',
-			// 		name: '商品名称商品名称商品名称商品名称商品名称',
-			// 		price: '￥168',
-			// 		slogan: '1235人付款'
-			// 	};
-			// 	this.productList.push(p);
-			// }
-		},
+
 		onLoad() {
+			console.log('loaded')
 			this.iconType = ['success', 'success_no_circle', 'info', 'warn', 'waiting', 'cancel', 'download', 'search', 'clear']
-			// 请求微信登录信息
-			uni.request({
-				url: 'http://ct.sccdlc.com/api/wx/geturl',
-				method: 'POST',
-				success: (res) => {
-					console.log(res.data);
-					console.log(location)
-					location.href = res.data.data;
-				}
-			})
 			
 		},
+		filters: {
+			timeFilter(value) {
+				return value.split(' ')[0].replace(/-/g, '.') + '-' + value.split(' ')[2].replace(/-/g, '.')
+			}
+		},
+		mounted() {
+			this.userInfo = JSON.parse(localStorage.getItem('user_info'))
+			this.oid = localStorage.getItem('oid')
+			console.log(this.oid)
+			this.randerTheme()
+			this.renderBanner()
+			this.renderActivity()
+		},
 		methods: {
+			outline () {
+				this.showActivitys = this.activityData.filter(ele => {
+					return ele.area && ele.area.length > 0
+				})
+			},
+			online () {
+				this.showActivitys = this.activityData.filter(ele => {
+					return !ele.area || ele.area.length <= 0
+				})
+			},
+			randerTheme() {
+				let that = this
+				uni.request({
+					url: 'http://ct.sccdlc.com/api/get/app/config',
+					method: 'POST',
+					data: {
+						openid: that.oid
+					},
+					success: (res) => {
+						console.log(res.data.data);
+						let data = res.data.data;
+						that.theme = data.config;
+					}
+				})
+			},
+			
+			renderActivity() {
+				let that = this
+				uni.request({
+					url: 'http://ct.sccdlc.com/api/get/active',
+					method: 'POST',
+					data: {
+						openid: that.oid
+					},
+					success: (res) => {
+						
+						that.activityData = res.data.data
+						
+						that.activityData = that.showActivitys = that.activityData && that.activityData.filter((ele) => {
+							return +new Date() < +new Date(ele.end_time);
+						})
+					}
+				})
+			},
+			renderBanner() {
+				let that = this
+				uni.request({
+					url: 'http://ct.sccdlc.com/api/get/banner',
+					method: 'POST',
+					data: {
+						openid: localStorage.getItem('oid')
+					},
+					success: (res) => {
+						that.bannerData = res.data.data;
+						// location.href = res.data.data;
+					}
+				})
+			},
 			// 跳转到表单填写
-			goCommit(e) {
-				console.log(222)
+			goCommit(item) {
 				uni.navigateTo({
-					url: '../../activity/form'
+					url: '../../activity/form?item=' + JSON.stringify(item)
 				});
 			},
 			// 跳转到活动详情页
-			goDetail() {
+			goDetail(item) {
 				console.log(1)
 				uni.navigateTo({
-					url: '../../activity/detail'
+					url: '../../activity/detail?id=' + item.active_id,
+
 				});
 			},
 			//加载Promotion 并设定倒计时,,实际应用中应该是ajax加载此数据。
@@ -317,10 +325,11 @@
 			},
 			//轮播图跳转
 			toSwiper(e) {
-				uni.showToast({
-					title: e.src,
-					icon: 'none'
-				});
+				console.log(e)
+				// uni.showToast({
+				// 	title: e.id + '',
+				// 	icon: 'none'
+				// });
 			},
 			//分类跳转
 			toCategory(e) {
@@ -351,6 +360,28 @@
 			swiperChange(event) {
 				this.currentSwiper = event.detail.current;
 			}
+		},
+		onPageScroll(e) {
+			//兼容iOS端下拉时顶部漂移
+			this.headerPosition = e.scrollTop >= 0 ? "fixed" : "absolute";
+			this.headerTop = e.scrollTop >= 0 ? null : 0;
+			this.statusTop = e.scrollTop >= 0 ? null : -this.statusHeight + 'px';
+		},
+		//下拉刷新，需要自己在page.json文件中配置开启页面下拉刷新 "enablePullDownRefresh": true
+		onPullDownRefresh() {
+			let that = this
+			setTimeout(function() {
+				uni.stopPullDownRefresh();
+				that.randerTheme()
+				that.renderBanner()
+				that.renderActivity()
+			}, 1000);
+		},
+		//上拉加载，需要自己在page.json文件中配置"onReachBottomDistance"
+		onReachBottom() {
+			// uni.showToast({
+			// 	title: '触发上拉加载'
+			// });
 		}
 	};
 </script>
@@ -365,7 +396,7 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		top: 100upx;
+		top: 50upx;
 		width: 92%;
 		text-align: center;
 		margin: 0 auto;
@@ -384,6 +415,7 @@
 			margin: 10upx;
 			border-radius: 50%;
 			background-image: url('../../../static/img/q.jpg');
+			background-size: cover;
 		}
 	}
 

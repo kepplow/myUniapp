@@ -3,29 +3,30 @@
 		<view class="back">
 		</view>
 		<view class="information">
-			<image src="../../../static/img/alipay.png"></image>
+			<image :src="userinfo.headimgurl"></image>
 			<view class="rightbox">
-				<view class="username">名字名字名字名字</view>
-				<view class="jianjie">简介名字名字名字名字简介名字名字名字名字简介名字名字名字名字</view>
+				<view class="username">{{userinfo.nickname}}</view>
+				<!-- <view class="jianjie">{{}}</view> -->
 			</view>
 		</view>
 		<view class="baoming">
 			<view class="mybaoming">我的报名</view>
 			<view class="backcolor"></view>
 		</view>
-		<view class="mylesson">
-			<image src="../../../static/img/占位图.png"></image>
+		<view class="mylesson" v-for="item in activityData" :key="item.active.id">
+			<image :src="baseUrl + item.active.active_images"></image>
 			<view class="classinfo">
 				<view class="classname">
-					<view class="yibaoming">已报名</view> 半手倒立基础课程详解 倒立基础课程详解
+					<!-- <view class="yibaoming">{{item.order.is_pay == '1' ? '已支付' : '待支付'}}</view> -->{{item.active.title}}
 				</view>
-				<view class="placeinfo">场馆信息：<text>世纪城三号馆</text></view>
-				<view class="intime">报名时间：<text>2020.07.15-08.15</text>
-					<view class="xiangqing">详情</view>
+				<view class="placeinfo" v-if="item.register.area">场馆信息：<text>{{item.register.area}}</text></view>
+				<view class="intime">报名时间：<text>{{item.order.create_time.split(' ')[0]}}</text>
+					<view class="xiangqing" @tap.stop="goDetail(item.active)">详情</view>
 				</view>
 			</view>
 		</view>
-		<view class="dingdan">
+		
+		<!-- <view class="dingdan">
 			<view class="mydingdan">我的订单</view>
 			<view class="backcolor"></view>
 		</view>
@@ -41,13 +42,17 @@
 				</view>
 			</view>
 
-		</view>
+		</view> -->
 	</view>
 </template>
 <script>
 	export default {
 		data() {
 			return {
+				activityData: [],
+				oid: '',
+				baseUrl: 'http://47.106.246.68:8000/',
+				userinfo: {},
 				isfirst: true,
 				headerPosition: "fixed",
 				headerTop: null,
@@ -57,52 +62,33 @@
 
 			}
 		},
-		//下拉刷新，需要自己在page.json文件中配置开启页面下拉刷新 "enablePullDownRefresh": true
-		onPullDownRefresh() {
-			setTimeout(function() {
-				uni.stopPullDownRefresh();
-			}, 1000);
-		},
-		onPageScroll(e) {
-			//兼容iOS端下拉时顶部漂移
-			this.headerPosition = e.scrollTop >= 0 ? "fixed" : "absolute";
-			this.headerTop = e.scrollTop >= 0 ? null : 0;
-			this.statusTop = e.scrollTop >= 0 ? null : -this.statusHeight + 'px';
-		},
-		onLoad() {
-			this.statusHeight = 0;
-			// #ifdef APP-PLUS
-			this.showHeader = false;
-			this.statusHeight = plus.navigator.getStatusbarHeight();
-			// #endif
-		},
-		onReady() {
-			//此处，演示,每次页面初次渲染都把登录状态重置
-			uni.setStorage({
-				key: 'UserInfo',
-				data: false,
-				success: function() {},
-				fail: function(e) {}
-			});
-		},
-		onShow() {
-			uni.getStorage({
-				key: 'UserInfo',
-				success: (res) => {
-					if (!res.data) {
-						if (this.isfirst) {
-							//this.toLogin();
-						}
-						return;
-					}
-					this.user = res.data;
-				},
-				fail: (e) => {
-					//this.toLogin(); 
-				}
-			});
+		
+		beforeMount() {
+			this.oid = localStorage.getItem('oid');
+			this.userinfo = JSON.parse(localStorage.getItem('user_info'));
+			this.randerActivity()
 		},
 		methods: {
+			goDetail(item) {
+				uni.navigateTo({
+					url: '../../activity/detail?id=' + item.active_id,
+			
+				});
+			},
+			randerActivity () {
+				let that = this
+				uni.request({
+					url: 'http://ct.sccdlc.com/api/get/enroll/list',
+					method:"POST",
+					data: {
+						openid: this.userinfo.openid || this.oid
+					},
+					success(res) {
+						console.log(res.data.data)
+						that.activityData = res.data.data
+					}
+				})
+			},
 			//消息列表
 			toMsg() {
 				uni.navigateTo({
@@ -160,6 +146,53 @@
 					url: url
 				})
 			}
+		},
+		//下拉刷新，需要自己在page.json文件中配置开启页面下拉刷新 "enablePullDownRefresh": true
+		onPullDownRefresh() {
+			let that = this
+			setTimeout(function() {
+				uni.stopPullDownRefresh();
+				that.randerActivity()
+			}, 1000);
+		},
+		onPageScroll(e) {
+			//兼容iOS端下拉时顶部漂移
+			this.headerPosition = e.scrollTop >= 0 ? "fixed" : "absolute";
+			this.headerTop = e.scrollTop >= 0 ? null : 0;
+			this.statusTop = e.scrollTop >= 0 ? null : -this.statusHeight + 'px';
+		},
+		onLoad() {
+			this.statusHeight = 0;
+			// #ifdef APP-PLUS
+			this.showHeader = false;
+			this.statusHeight = plus.navigator.getStatusbarHeight();
+			// #endif
+		},
+		onReady() {
+			//此处，演示,每次页面初次渲染都把登录状态重置
+			uni.setStorage({
+				key: 'UserInfo',
+				data: false,
+				success: function() {},
+				fail: function(e) {}
+			});
+		},
+		onShow() {
+			uni.getStorage({
+				key: 'UserInfo',
+				success: (res) => {
+					if (!res.data) {
+						if (this.isfirst) {
+							//this.toLogin();
+						}
+						return;
+					}
+					this.user = res.data;
+				},
+				fail: (e) => {
+					//this.toLogin(); 
+				}
+			});
 		}
 	}
 </script>
@@ -199,7 +232,7 @@
 		image {
 			height: 250upx;
 			width: 250upx;
-
+			border-radius: 50%;
 		}
 	}
 
@@ -233,8 +266,8 @@
 		image {
 			margin-left: 35upx;
 			margin-top: 40upx;
-			width: 230upx;
-			height: 180upx;
+			width: 240upx;
+			height: 200upx;
 			// z-index: -1;
 			border-radius: 25upx;
 		}
