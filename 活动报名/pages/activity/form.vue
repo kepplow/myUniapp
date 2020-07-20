@@ -241,26 +241,26 @@
 			pay () {
 				// 验证表单
 				let that = this
-				let flag = this.checkForm();
+				let flag = that.checkForm();
 				if (!flag) return
 				uni.request({
 					url: 'http://ct.sccdlc.com/api/user/enroll',
 					data:{
-						...this.commitData,
-						openid: this.oid,
-						active_id: this.formData.active_id
+						...that.commitData,
+						openid: that.oid,
+						active_id: that.formData.active_id
 					},
 					method:'POST',
 					success(res) {
 						
-						this.orderid = res.data.data.order_id;
+						that.orderid = res.data.data.order_id;
 							if (res.data.code == 200) {
 								uni.showToast({
 									title: '报名成功！',
 									icon: 'none'
 								})
 								uni.navigateTo({
-									url: '../tabBar/user/user'
+									url: `../goods/goods?orderid=${that.orderid}`
 								})
 							} else {
 								uni.showToast({
