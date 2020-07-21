@@ -135,7 +135,10 @@
 		},
 		filters: {
 			timeFilter(value) {
-				return value.split(' ')[0].replace(/-/g, '.') + '-' + value.split(' ')[2].replace(/-/g, '.')
+				if (value && value.split(' ') && value.split(' ')[0] && value.split(' ')[2]) {
+					return value.split(' ')[0].replace(/-/g, '.') + '-' + value.split(' ')[2].replace(/-/g, '.')
+				}
+				return ''
 			}
 		},
 		mounted() {
@@ -184,10 +187,18 @@
 					success: (res) => {
 						
 						that.activityData = res.data.data
+						if (res.data.data) {
+							that.activityData = res.data.data.filter((ele) => {
+								
+								let endDate = ele.end_time.split(' ')[0]
+								let endTime = ele.end_time.split(' ')[1]
+								let endDateArr = endDate.split('-')
+								let endTimeArr = endTime.split(':')
+								return new Date().getTime() < new Date(endDateArr[0],endDateArr[1]-1,endDateArr[2],endTimeArr[0],endTimeArr[1],endTimeArr[2]).getTime();
+							})
+							that.showActivitys = JSON.parse(JSON.stringify(that.activityData))
+						}
 						
-						that.activityData = that.showActivitys = that.activityData && that.activityData.filter((ele) => {
-							return +new Date() < +new Date(ele.end_time);
-						})
 					}
 				})
 			},
