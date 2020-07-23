@@ -45,7 +45,7 @@
 			}
 		},
 		{
-			"path": "pages/tabBar/user/user",
+			"path": "pages/tabBar/user/user/user",
 			"style": {
 				"enablePullDownRefresh": true,
 				"backgroundTextStyle":"light",
@@ -79,6 +79,36 @@
 		},
 		{
 		    "path" : "pages/activity/form",
+		    "style" : {
+				"navigationBarTitleText" : "",
+				"navigationBarBackgroundColor":"#f1f1f1",
+				"onReachBottomDistance":50,
+				"h5":{
+					"titleNView":false
+				},
+				"app-plus": {
+					"titleNView": false ,//禁用原生导航栏
+					"bounce":"none"
+				}
+			}
+		},
+		{
+		    "path" : "pages/goods/detail",
+		    "style" : {
+				"navigationBarTitleText" : "",
+				"navigationBarBackgroundColor":"#f1f1f1",
+				"onReachBottomDistance":50,
+				"h5":{
+					"titleNView":false
+				},
+				"app-plus": {
+					"titleNView": false ,//禁用原生导航栏
+					"bounce":"none"
+				}
+			}
+		},
+		{
+		    "path" : "pages/goods/form",
 		    "style" : {
 				"navigationBarTitleText" : "",
 				"navigationBarBackgroundColor":"#f1f1f1",
@@ -259,7 +289,7 @@
 			}
         }
         ,{
-            "path" : "pages/pay/payment/payment",
+            "path" : "pages/pay/payment/payment/payment",
             "style" : {
 				"navigationBarBackgroundColor":"#ffffff",
 				"navigationBarTitleText":"订单支付",
@@ -319,7 +349,7 @@
 			// 	"text": "购物车"
 			// },
 			{
-				"pagePath": "pages/tabBar/user/user",
+				"pagePath": "pages/tabBar/user/user/user",
 				"iconPath": "static/img/tabBar/user.png",
 				"selectedIconPath": "static/img/tabBar/user-on.png",
 				"text": "我的"

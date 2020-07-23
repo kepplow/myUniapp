@@ -10,22 +10,22 @@
 		<view class="content">
 			<view class="float-box">
 				<view class="title">
-					恭喜获得数字奖章和证书
+					活动举办成功后，将获得数字证书和奖章
 				</view>
 				<view class="image-box">
 					<image class="bg-black" src="../../static/img/05.png" style="padding: 20upx;box-sizing: border-box;" mode=""></image>
 					<image :src="baseUrl + certificateImg" mode=""></image>
 				</view>
-				<view class="download-btn" @tap="download">
+				<!-- <view class="download-btn" @tap="download">
 					<view class="icon"></view>
 					下载数字证书
-				</view>
+				</view> -->
 			</view>
 			
 			<!-- 二级标题 -->
 			<view class="sub-title">
 				<view class="left">
-					<view>纪念品类</view>
+					<view>纪念品（自愿购买）</view>
 					<text></text>
 				</view>
 				<view class="right">
@@ -46,12 +46,12 @@
 								￥<text>{{item.actual_price}}</text>
 								<text class="old-price">￥{{item.price}}</text>
 							</view>
-							<view class="btn">立即购买</view>
+							<view class="btn" @tap="goDetail(item)">立即购买</view>
 						</view>
 					</view>
 				</view>
 			</view>
-			<view class="back-btn">
+			<view class="back-btn" @tap="goUser">
 				<view class="icon"></view>
 				返回
 			</view>
@@ -84,6 +84,16 @@
 			this.getGoodsList()
 		},
 		methods: {
+			goUser () {
+				uni.switchTab({
+					url: '../tabBar/user/user/user'
+				})
+			},
+			goDetail (goods) {
+				uni.navigateTo({
+					url: './detail?goodsId=' + goods.goods_id
+				})
+			},
 			getGoodsList () {
 				let that = this
 				uni.request({
@@ -211,13 +221,13 @@
 			justify-content: space-between;
 		
 			.left {
-				width: 300upx;
+				width: 400upx;
 				position: relative;
 		
 				view {
 					position: absolute;
 					top: 0;
-					width: 300upx;
+					width: 400upx;
 					font-weight: 550;
 					z-index: 2;
 				}
@@ -227,7 +237,7 @@
 					top: 20upx;
 					left: 20upx;
 					display: block;
-					width: 160upx;
+					width: 350upx;
 					height: 35upx;
 					background-color: #D44D62;
 					z-index: 1;

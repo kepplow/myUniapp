@@ -24,10 +24,25 @@
 							code: data.code
 						},
 						success: (res) => {
-							localStorage.setItem('oid', res.data.data.openid);
-							localStorage.setItem('expire', res.data.time);
-							localStorage.setItem('user_info', JSON.stringify(res.data.data));
-							location.href = location.origin
+							if (res.data.code == 200) {
+								location.href = location.origin + '?openid=' + res.data.data.openid + '&expire=' + expire
+							} else {
+								alert('openid获取失败')
+							}
+							// 				// localStorage.setItem('oid', res.data.data.openid);
+							// 				// localStorage.setItem('expire', res.data.time);
+							// 				// localStorage.setItem('user_info', JSON.stringify(res.data.data));
+							// 				// let timer = setInterval(()=> {
+							// 				// 	let haveOid = localStorage.getItem('oid')
+							// 				// 	if (!haveOid || haveOid == 'undefined') {
+							// 				// 		console.log(1111,haveOid)
+							// 				// 	} else {
+							// 				// 		console.log(2222,haveOid)
+							// 				// 		clearInterval(timer)
+							// 				// 		location.href = location.origin
+							// 				// 		return
+							// 				// 	}
+							// 				// },250)
 						}
 					})
 				} else {
@@ -35,7 +50,7 @@
 				}
 
 			} else {
-				if (expire*1000 - 24 * 3600 * 1000 < now) {
+				if (expire * 1000 - 24 * 3600 * 1000 < now) {
 					localStorage.removeItem('oid')
 					getcode()
 				}
@@ -54,6 +69,9 @@
 			// 		"created_at": "2020-07-16 06:02:51"
 			// 	}`
 			// )
+			// if (!oid || oid == 'undefined') {
+			// 	location.href = location.origin + '?openid=oxoIL1jNGkJ-vgE8J580piUMpNVs'
+			// }
 
 			function getcode() {
 				uni.request({
@@ -79,4 +97,11 @@
 <style lang="scss">
 	/*每个页面公共css */
 	@import "/static/iconfont/font.scss";
+
+	/* #ifdef H5 */
+	uni-page-head {
+		display: none;
+	}
+
+	/* #endif */
 </style>

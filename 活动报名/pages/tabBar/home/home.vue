@@ -7,7 +7,7 @@
 		<view class="activity-title">
 			<text>{{theme.title}}</text>
 
-			<view class="wx-avatar" :style="`background-image: url(${userInfo.headimgurl});`"></view>
+			<!-- <view class="wx-avatar" :style="`background-image: url(${userInfo.headimgurl});`"></view> -->
 		</view>
 		<!-- 轮播图 -->
 		<view class="swiper">
@@ -128,11 +128,6 @@
 			};
 		},
 
-		onLoad() {
-			console.log('loaded')
-			this.iconType = ['success', 'success_no_circle', 'info', 'warn', 'waiting', 'cancel', 'download', 'search', 'clear']
-			
-		},
 		filters: {
 			timeFilter(value) {
 				if (value && value.split(' ') && value.split(' ')[0] && value.split(' ')[2]) {
@@ -141,10 +136,30 @@
 				return ''
 			}
 		},
-		mounted() {
-			this.userInfo = JSON.parse(localStorage.getItem('user_info'))
+		onLoad() {
+			console.log('loaded')
+			this.iconType = ['success', 'success_no_circle', 'info', 'warn', 'waiting', 'cancel', 'download', 'search', 'clear']
+			
+		},
+		created () {
+			let data = {};
+			// 获取query里的code请求用户信息
+			let query = location.search.substr(1)
+			query.split('&').forEach(ele => {
+				data[ele.split('=')[0]] = ele.split('=')[1]
+			})
+			let oid = localStorage.getItem('oid')
+			if (data && data.openid) {
+				localStorage.setItem('oid', data.openid)
+			}
+			if (data && data.expire) {
+				localStorage.setItem('expire', data.expire)
+			}
+		},
+		onReady() {
 			this.oid = localStorage.getItem('oid')
 			console.log(this.oid)
+			this.getUserInfo()
 			this.randerTheme()
 			this.renderBanner()
 			this.renderActivity()
@@ -158,6 +173,21 @@
 			online () {
 				this.showActivitys = this.activityData.filter(ele => {
 					return !ele.area || ele.area.length <= 0
+				})
+			},
+			getUserInfo () {
+				let that = this
+				uni.request({
+					url: 'http://ct.sccdlc.com/api/get/user',
+					method: 'POST',
+					data: {
+						openid: that.oid
+					},
+					success: (res) => {
+						console.log(res.data.data);
+						localStorage.setItem('user_info', JSON.stringify(res.data.data))
+						that.userInfo = res.data.data
+					}
 				})
 			},
 			randerTheme() {
