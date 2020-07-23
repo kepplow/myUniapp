@@ -92,9 +92,7 @@
 		<!-- 商品列表 -->
 		<view class="goods-list">
 			<view class="title">
-				<image src="/static/img/hua.png"></image>
-				猜你喜欢
-				<image src="/static/img/hua.png"></image>
+				本周热卖
 			</view>
 			<view class="product-list">
 				<view class="product" v-for="product in productList" :key="product.goods_id" @tap="toGoods(product)">
@@ -854,14 +852,11 @@
 
 		// background-color: #f4f4f4;
 		.title {
-			width: 100%;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			height: 80upx;
-			color: #f47825;
-			font-size: 30upx;
-			margin-top: 10upx;
+
+			margin: 20upx 30upx;
+			color: $uni-color-primary;
+			line-height: $uni-img-size-base;
+			font-size: 40upx;
 
 			image {
 				width: 30upx;
