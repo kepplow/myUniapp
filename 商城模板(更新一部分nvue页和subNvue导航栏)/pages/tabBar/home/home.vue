@@ -27,7 +27,7 @@
 			<view class="swiper-box">
 				<swiper circular="true" autoplay="true" @change="swiperChange">
 					<swiper-item v-for="swiper in swiperList" :key="swiper.id">
-						<image :src="swiper.img" @tap="toSwiper(swiper)"></image>
+						<image :src="swiper.img_address" @tap="toSwiper(swiper)"></image>
 					</swiper-item>
 				</swiper>
 				<view class="indicator">
@@ -49,10 +49,10 @@
 		</view> -->
 		<!-- 广告图 -->
 		<view class="banner">
-			<image src="/static/img/banner.jpg"></image>
+			<image :src="activity.title_img"></image>
 		</view>
 		<!-- 活动区 -->
-		<view class="promotion">
+		<!-- <view class="promotion">
 			<view class="title">
 				<image src="../../../static/img/hot.png"></image>
 				<text class="text">今日推荐</text>
@@ -88,215 +88,68 @@
 					</view>
 				</view>
 			</view>
+		</view> -->
+		
+		<view class="sub-title">
+			本周热卖
 		</view>
 		<!-- 商品列表 -->
 		<view class="goods-list">
-			<view class="title">
-				本周热卖
-			</view>
 			<view class="product-list">
 				<view class="product" v-for="product in productList" :key="product.goods_id" @tap="toGoods(product)">
-					<image mode="widthFix" :src="product.img"></image>
-					<view class="name">{{ product.name }}</view>
+					<image class="goods-image" mode="widthFix" :src="product.goods_img && product.goods_img[0]"></image>
+					<image class="like" src="../../../static/img/head@2x.png" mode=""></image>
+					<view class="name">{{ product.title }}</view>
+					<view class="explain">{{ product.explain }}</view>
 					<view class="info">
-						<view class="price">{{ product.price }}</view>
-						<view class="slogan">{{ product.slogan }}</view>
+						<view class="price">￥{{ product.price }}</view>
+						<view class="slogan">+</view>
 					</view>
 				</view>
 			</view>
-			<view class="loading-text">{{ loadingText }}</view>
+			<!-- <view class="loading-text">{{ loadingText }}</view> -->
+		</view>
+		<view class="sub-title">
+			为您推荐
+		</view>
+		
+		<view class="goods-list-2">
+			<view class="item" v-for="item in categoryList" :key="item.id">
+				<image :src="item.goods_img && item.goods_img[0]"></image>
+				<view class="title">{{item.title}}</view>
+				<view class="price">￥<text>{{item.price}}</text></view>
+			</view>
+			
 		</view>
 	</view>
 </template>
 
 <script>
-	var ttt = 0;
-	//高德SDK
-	import amap from '@/common/SDK/amap-wx.js';
+	
 	export default {
 		data() {
 			return {
+				activity: {},
 				showHeader: true,
 				afterHeaderOpacity: 1, //不透明度
 				headerPosition: 'fixed',
 				headerTop: null,
 				statusTop: null,
 				nVueTitle: null,
-				city: '北京',
 				currentSwiper: 0,
 				// 轮播图片
-				swiperList: [{
-						id: 1,
-						src: 'url1',
-						img: '/static/img/1.jpg'
-					},
-					{
-						id: 2,
-						src: 'url2',
-						img: '/static/img/2.jpg'
-					},
-					{
-						id: 3,
-						src: 'url3',
-						img: '/static/img/3.jpg'
-					}
-				],
-				// 分类菜单
-				categoryList: [{
-						id: 1,
-						name: '办公',
-						img: '/static/img/category/1.png'
-					},
-					{
-						id: 2,
-						name: '家电',
-						img: '/static/img/category/2.png'
-					},
-					{
-						id: 3,
-						name: '服饰',
-						img: '/static/img/category/3.png'
-					},
-					{
-						id: 4,
-						name: '日用',
-						img: '/static/img/category/4.png'
-					},
-					{
-						id: 5,
-						name: '蔬果',
-						img: '/static/img/category/5.png'
-					},
-					{
-						id: 6,
-						name: '运动',
-						img: '/static/img/category/6.png'
-					},
-					{
-						id: 7,
-						name: '书籍',
-						img: '/static/img/category/7.png'
-					},
-					{
-						id: 8,
-						name: '文具',
-						img: '/static/img/category/8.png'
-					}
-				],
+				swiperList: [],
+				// 为您推荐列表
+				categoryList: [],
 				// Promotion: [],
-				//猜你喜欢列表
-				productList: [{
-						goods_id: 0,
-						img: '/static/img/goods/p1.jpg',
-						name: '商品名称商品名称商品名称商品名称商品名称',
-						price: '￥168',
-						slogan: '1235人付款'
-					},
-					{
-						goods_id: 1,
-						img: '/static/img/goods/p2.jpg',
-						name: '商品名称商品名称商品名称商品名称商品名称',
-						price: '￥168',
-						slogan: '1235人付款'
-					},
-					{
-						goods_id: 2,
-						img: '/static/img/goods/p3.jpg',
-						name: '商品名称商品名称商品名称商品名称商品名称',
-						price: '￥168',
-						slogan: '1235人付款'
-					},
-					{
-						goods_id: 3,
-						img: '/static/img/goods/p4.jpg',
-						name: '商品名称商品名称商品名称商品名称商品名称',
-						price: '￥168',
-						slogan: '1235人付款'
-					},
-					{
-						goods_id: 4,
-						img: '/static/img/goods/p5.jpg',
-						name: '商品名称商品名称商品名称商品名称商品名称',
-						price: '￥168',
-						slogan: '1235人付款'
-					},
-					{
-						goods_id: 5,
-						img: '/static/img/goods/p6.jpg',
-						name: '商品名称商品名称商品名称商品名称商品名称',
-						price: '￥168',
-						slogan: '1235人付款'
-					},
-					{
-						goods_id: 6,
-						img: '/static/img/goods/p7.jpg',
-						name: '商品名称商品名称商品名称商品名称商品名称',
-						price: '￥168',
-						slogan: '1235人付款'
-					},
-					{
-						goods_id: 7,
-						img: '/static/img/goods/p8.jpg',
-						name: '商品名称商品名称商品名称商品名称商品名称',
-						price: '￥168',
-						slogan: '1235人付款'
-					},
-					{
-						goods_id: 8,
-						img: '/static/img/goods/p9.jpg',
-						name: '商品名称商品名称商品名称商品名称商品名称',
-						price: '￥168',
-						slogan: '1235人付款'
-					},
-					{
-						goods_id: 9,
-						img: '/static/img/goods/p10.jpg',
-						name: '商品名称商品名称商品名称商品名称商品名称',
-						price: '￥168',
-						slogan: '1235人付款'
-					}
-				],
+				//本周热卖列表
+				productList: [],
 				loadingText: '正在加载...'
 			};
 		},
-		onPageScroll(e) {
-			//兼容iOS端下拉时顶部漂移
-			this.headerPosition = e.scrollTop >= 0 ? "fixed" : "absolute";
-			this.headerTop = e.scrollTop >= 0 ? null : 0;
-			this.statusTop = e.scrollTop >= 0 ? null : -this.statusHeight + 'px';
-		},
-		//下拉刷新，需要自己在page.json文件中配置开启页面下拉刷新 "enablePullDownRefresh": true
-		onPullDownRefresh() {
-			setTimeout(function() {
-				uni.stopPullDownRefresh();
-			}, 1000);
-		},
-		//上拉加载，需要自己在page.json文件中配置"onReachBottomDistance"
-		onReachBottom() {
-			uni.showToast({
-				title: '触发上拉加载'
-			});
-			let len = this.productList.length;
-			if (len >= 40) {
-				this.loadingText = '到底了';
-				return false;
-			}
-			// 演示,随机加入商品,生成环境请替换为ajax请求
-			let end_goods_id = this.productList[len - 1].goods_id;
-			for (let i = 1; i <= 10; i++) {
-				let goods_id = end_goods_id + i;
-				let p = {
-					goods_id: goods_id,
-					img: '/static/img/goods/p' + (goods_id % 10 == 0 ? 10 : goods_id % 10) + '.jpg',
-					name: '商品名称商品名称商品名称商品名称商品名称',
-					price: '￥168',
-					slogan: '1235人付款'
-				};
-				this.productList.push(p);
-			}
-		},
+		
 		onLoad() {
-
+			uni.showTabBarRedDot({index:2});
 			// #ifdef APP-PLUS
 			this.nVueTitle = uni.getSubNVueById('homeTitleNvue');
 			this.nVueTitle.onMessage(res => {
@@ -308,120 +161,36 @@
 			this.showHeader = false;
 			this.statusHeight = plus.navigator.getStatusbarHeight();
 			// #endif
-			// this.amapPlugin = new amap.AMapWX({
-			// 	//高德地图KEY，随时失效，请务必替换为自己的KEY，参考：http://ask.dcloud.net.cn/article/35070
-			// 	key: '7c235a9ac4e25e482614c6b8eac6fd8e'
-			// });
-			// //定位地址
-			// this.amapPlugin.getRegeo({
-			// 	success: data => {
-			// 		this.city = data[0].regeocodeData.addressComponent.city.replace(/市/g, ''); //把"市"去掉
-			// 		// #ifdef APP-PLUS
-			// 		this.nVueTitle.postMessage({
-			// 			type: 'location',
-			// 			city: this.city
-			// 		});
-			// 		// #endif
-			// 	}
-			// });
-			//开启定时器
-			// this.Timer();
-			//加载活动专区
-			// this.loadPromotion();
+			
 		},
+		beforeMount() {
+			this.renderSwiper()
+			this.randerActivity()
+			this.randergoods()
+		},
+		
 		methods: {
-			//加载Promotion 并设定倒计时,,实际应用中应该是ajax加载此数据。
-			// loadPromotion() {
-			// 	let cutTime = new Date();
-			// 	let yy = cutTime.getFullYear(),
-			// 		mm = cutTime.getMonth() + 1,
-			// 		dd = cutTime.getDate();
-			// 	let tmpcountdown = yy + '/' + mm + '/' + dd + ' 23:59:59';
-			// 	let tmpPromotion = [{
-			// 			title: '整点秒杀',
-			// 			ad: '整天秒杀专区',
-			// 			img: '/static/img/s1.jpg',
-			// 			countdown: false
-			// 		},
-			// 		{
-			// 			title: '限时抢购',
-			// 			ad: '每天23点上线',
-			// 			img: '/static/img/s2.jpg',
-			// 			countdown: tmpcountdown
-			// 		} //countdown为目标时间，程序会获取当前时间倒数
-			// 	];
-			// 	//检查倒计时
-			// 	for (let i = 0; i < tmpPromotion.length; i++) {
-			// 		let row = tmpPromotion[i];
-			// 		if (row.countdown) {
-			// 			let h = '00',
-			// 				m = '00',
-			// 				s = '00';
-			// 			let currentTime = new Date();
-			// 			let cutoffTime = new Date(tmpcountdown);
-			// 			if (!(currentTime >= cutoffTime)) {
-			// 				let countTime = parseInt(
-			// 					(cutoffTime.getTime() - currentTime.getTime()) / 1000
-			// 				);
-			// 				h = parseInt(countTime / 3600);
-			// 				m = parseInt((countTime % 3600) / 60);
-			// 				s = countTime % 60;
-			// 				h = h < 10 ? '0' + h : h;
-			// 				m = m < 10 ? '0' + m : m;
-			// 				s = s < 10 ? '0' + s : s;
-			// 			}
-			// 			tmpPromotion[i].countdown = {
-			// 				h: h,
-			// 				m: m,
-			// 				s: s
-			// 			};
-			// 		}
-			// 	}
-			// 	this.Promotion = tmpPromotion;
-			// },
-			//定时器
-			// Timer() {
-			// 	setInterval(() => {
-			// 		if (this.Promotion.length > 0) {
-			// 			for (let i = 0; i < this.Promotion.length; i++) {
-			// 				let row = this.Promotion[i];
-			// 				if (row.countdown) {
-			// 					if (
-			// 						!(
-			// 							row.countdown.h == 0 &&
-			// 							row.countdown.m == 0 &&
-			// 							row.countdown.s == 0
-			// 						)
-			// 					) {
-			// 						if (row.countdown.s > 0) {
-			// 							row.countdown.s--;
-			// 							row.countdown.s =
-			// 								row.countdown.s < 10 ?
-			// 								'0' + row.countdown.s :
-			// 								row.countdown.s;
-			// 						} else if (row.countdown.m > 0) {
-			// 							row.countdown.m--;
-			// 							row.countdown.m =
-			// 								row.countdown.m < 10 ?
-			// 								'0' + row.countdown.m :
-			// 								row.countdown.m;
-			// 							row.countdown.s = 59;
-			// 						} else if (row.countdown.h > 0) {
-			// 							row.countdown.h--;
-			// 							row.countdown.h =
-			// 								row.countdown.h < 10 ?
-			// 								'0' + row.countdown.h :
-			// 								row.countdown.h;
-			// 							row.countdown.m = 59;
-			// 							row.countdown.s = 59;
-			// 						}
-			// 						this.Promotion[i].countdown = row.countdown;
-			// 					}
-			// 				}
-			// 			}
-			// 		}
-			// 	}, 1000);
-			// },
+			randergoods () {
+				this.$http.post('api/home/class/goods').then(res=> {
+					console.log(res)
+					let product = res.data.find(ele=> ele.name == '本周热卖')
+					let categoryList = res.data.find(ele=> ele.name == '挑选推荐')
+					this.productList = product.goods_list
+					this.categoryList = categoryList.goods_list
+				})
+			},
+			randerActivity () {
+				this.$http.post('api/home/activity').then(res=> {
+					this.activity = res.data[0]
+				})
+			},
+			// 获取轮播图，渲染
+			renderSwiper () {
+				this.$http.post('api/home/banner').then(res=> {
+					console.log(res)
+					this.swiperList = res.data
+				})
+			},
 			//消息列表
 			toMsg() {
 				uni.navigateTo({
@@ -436,10 +205,10 @@
 			},
 			//轮播图跳转
 			toSwiper(e) {
-				uni.showToast({
-					title: e.src,
-					icon: 'none'
-				});
+				// uni.showToast({
+				// 	title: e.src,
+				// 	icon: 'none'
+				// });
 			},
 			//分类跳转
 			toCategory(e) {
@@ -470,13 +239,49 @@
 			swiperChange(event) {
 				this.currentSwiper = event.detail.current;
 			}
+		},
+		onPageScroll(e) {
+			//兼容iOS端下拉时顶部漂移
+			this.headerPosition = e.scrollTop >= 0 ? "fixed" : "absolute";
+			this.headerTop = e.scrollTop >= 0 ? null : 0;
+			this.statusTop = e.scrollTop >= 0 ? null : -this.statusHeight + 'px';
+		},
+		//下拉刷新，需要自己在page.json文件中配置开启页面下拉刷新 "enablePullDownRefresh": true
+		onPullDownRefresh() {
+			setTimeout(function() {
+				uni.stopPullDownRefresh();
+			}, 1000);
+		},
+		//上拉加载，需要自己在page.json文件中配置"onReachBottomDistance"
+		onReachBottom() {
+			uni.showToast({
+				title: '触发上拉加载'
+			});
+			// let len = this.productList.length;
+			// if (len >= 40) {
+			// 	this.loadingText = '到底了';
+			// 	return false;
+			// }
+			// // 演示,随机加入商品,生成环境请替换为ajax请求
+			// let end_goods_id = this.productList[len - 1].goods_id;
+			// for (let i = 1; i <= 10; i++) {
+			// 	let goods_id = end_goods_id + i;
+			// 	let p = {
+			// 		goods_id: goods_id,
+			// 		img: '/static/img/goods/p' + (goods_id % 10 == 0 ? 10 : goods_id % 10) + '.jpg',
+			// 		name: '商品名称商品名称商品名称商品名称商品名称',
+			// 		price: '￥168',
+			// 		slogan: '1235人付款'
+			// 	};
+			// 	this.productList.push(p);
+			// }
 		}
 	};
 </script>
 <style lang="scss">
 	page {
 		position: relative;
-		background-color: #fff;
+		background-color: #F2F2F2;
 	}
 
 	@font-face {
@@ -505,7 +310,7 @@
 		width: 100%;
 		height: 0;
 		position: fixed;
-		z-index: 10;
+		z-index: 21;
 		background-color: #fff;
 		top: 0;
 		/*  #ifdef  APP-PLUS  */
@@ -515,14 +320,14 @@
 
 	.header {
 		width: 92%;
-		padding: 0 4%;
 		height: 100upx;
+		padding: 0 4%;
 		display: flex;
 		align-items: center;
 		position: fixed;
 		top: 0;
-		z-index: 10;
-		background-color: #fff;
+		z-index: 21;
+		background-color: transform;
 
 		/*  #ifdef  APP-PLUS  */
 		top: var(--status-bar-height);
@@ -591,26 +396,24 @@
 		}
 	}
 
-	.place {
-		background-color: #ffffff;
-		height: 100upx;
-		/*  #ifdef  APP-PLUS  */
-		margin-top: var(--status-bar-height);
-		/*  #endif  */
-	}
+	// .place {
+	// 	background-color: #ffffff;
+	// 	height: 100upx;
+	// 	/*  #ifdef  APP-PLUS  */
+	// 	margin-top: var(--status-bar-height);
+	// 	/*  #endif  */
+	// }
 
 	.swiper {
 		width: 100%;
-		margin-top: 10upx;
 		display: flex;
 		justify-content: center;
 
 		.swiper-box {
-			width: 92%;
-			height: 30.7vw;
+			width: 100%;
+			height: 60vw;
 
 			overflow: hidden;
-			border-radius: 15upx;
 			box-shadow: 0upx 8upx 25upx rgba(0, 0, 0, 0.2);
 			//兼容ios，微信小程序
 			position: relative;
@@ -618,12 +421,12 @@
 
 			swiper {
 				width: 100%;
-				height: 30.7vw;
+				height: 60vw;
 
 				swiper-item {
 					image {
 						width: 100%;
-						height: 30.7vw;
+						height: 60vw;
 					}
 				}
 			}
@@ -732,7 +535,7 @@
 		.list {
 			width: 100%;
 			display: flex;
-
+			background-color: white;
 			.left {
 				width: 50%;
 				flex-basis: 1;
@@ -847,22 +650,13 @@
 			}
 		}
 	}
-
+	.sub-title {
+		margin: 20upx 30upx;
+		color: $uni-color-primary;
+		line-height: $uni-img-size-base;
+		font-size: 40upx;
+	}
 	.goods-list {
-
-		// background-color: #f4f4f4;
-		.title {
-
-			margin: 20upx 30upx;
-			color: $uni-color-primary;
-			line-height: $uni-img-size-base;
-			font-size: 40upx;
-
-			image {
-				width: 30upx;
-				height: 30upx;
-			}
-		}
 
 		.loading-text {
 			width: 100%;
@@ -873,7 +667,7 @@
 			color: #979797;
 			font-size: 24upx;
 		}
-
+		
 		.product-list {
 			width: 92%;
 			padding: 0 4% 3vw 4%;
@@ -887,12 +681,19 @@
 				background-color: #fff;
 				margin: 0 0 15upx 0;
 				box-shadow: 0upx 5upx 25upx rgba(0, 0, 0, 0.1);
-
-				image {
+				position: relative;
+				.goods-image {
 					width: 100%;
 					border-radius: 20upx 20upx 0 0;
 				}
-
+				
+				.like {
+					width: 40upx;
+					height: 40upx;
+					position: absolute;
+					right: 10upx;
+					top: 15upx;
+				}
 				.name {
 					width: 92%;
 					padding: 10upx 4%;
@@ -903,7 +704,16 @@
 					overflow: hidden;
 					font-size: 30upx;
 				}
-
+				.explain {
+					font-size: 24upx;
+					padding: 10upx 4%;
+					color: #666;
+					display: -webkit-box;
+					-webkit-box-orient: vertical;
+					-webkit-line-clamp: 2;
+					text-align: justify;
+					overflow: hidden;
+				}
 				.info {
 					display: flex;
 					justify-content: space-between;
@@ -918,9 +728,58 @@
 					}
 
 					.slogan {
-						color: #807c87;
-						font-size: 24upx;
+						background-color: #F21409;
+						color: white;
+						font-size: 40upx;
+						border-radius: 50%;
+						width: 35upx;
+						height: 35upx;
+						display: flex;
+						justify-content: center;
+						align-items: center;
+						vertical-align: middle;
+						
 					}
+				}
+			}
+		}
+	}
+	.goods-list-2 {
+		margin: 0 30upx 30upx 30upx;
+		width: calc(100% - 60upx);
+		border-radius: 15upx;
+		background-color: white;
+		overflow: hidden;
+		display: flex;
+		justify-content: space-around;
+		align-items: center;
+		padding: 30upx 0;
+		.item {
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			image {
+				width: 120upx;
+				height: 120upx;
+			}
+			.title {
+				max-width: 170upx;
+				font-size: 30upx;
+				color: #333;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+			.price {
+				max-width: 170upx;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+				color: #F21409;
+				font-size: 24upx;
+				text {
+					font-size: 36upx;
 				}
 			}
 		}

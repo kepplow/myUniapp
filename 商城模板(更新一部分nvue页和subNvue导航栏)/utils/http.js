@@ -49,7 +49,7 @@ http.interceptors.response.use((response) => { /* 对响应成功做点什么 �
 			title: '错误:' + response.data.message
 		})
 	}
-	return response
+	return response.data
 }, (response) => { /*  对响应错误做点什么 （statusCode !== 200）*/
 	console.log(response)
 	return Promise.reject(response)
