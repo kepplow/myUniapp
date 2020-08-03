@@ -25,11 +25,11 @@
 					<!-- 商品信息 -->
 					<view class="goods-info" @tap="toGoods(row)">
 						<view class="img">
-							<image :src="row.img"></image>
+							<image :src="row.goods_img"></image>
 						</view>
 						<view class="info">
-							<view class="title">{{row.name}}</view>
-							<view class="spec">{{row.spec}}</view>
+							<view class="title">{{row.goods_title}}</view>
+							<!-- <view class="spec">{{row.num}}</view> -->
 							<view class="price-number">
 								<view class="price">￥{{row.price}}</view>
 								<view class="number">
@@ -37,7 +37,7 @@
 										<view class="icon jian"></view>
 									</view>
 									<view class="input" @tap.stop="discard">
-										<input type="number" v-model="row.number" @input="sum($event,index)" />
+										<input type="number" v-model="row.num" @input="sum($event,index)" />
 									</view>
 									<view class="add"  @tap.stop="add(index)">
 										<view class="icon jia"></view>
@@ -71,6 +71,7 @@
 	export default {
 		data() {
 			return {
+				token: '',
 				sumPrice:'0.00',
 				headerPosition:"fixed",
 				headerTop:null,
@@ -78,31 +79,14 @@
 				showHeader:true,
 				selectedList:[],
 				isAllselected:false,
-				goodsList:[
-					{id:1,img:'/static/img/goods/p1.jpg',name:'商品标题商品标题商品标题商品标题商品标题商品标题商品标题商品标题商品标题商品标题',spec:'规格:S码',price:127.5,number:1,selected:false},
-					{id:2,img:'/static/img/goods/p2.jpg',name:'商品标题商品标题商品标题商品标题商品标题商品标题商品标题商品标题商品标题商品标题',spec:'规格:S码',price:127.5,number:1,selected:false},
-					{id:3,img:'/static/img/goods/p3.jpg',name:'商品标题商品标题商品标题商品标题商品标题商品标题商品标题商品标题商品标题商品标题',spec:'规格:S码',price:127.5,number:1,selected:false},
-					{id:4,img:'/static/img/goods/p4.jpg',name:'商品标题商品标题商品标题商品标题商品标题商品标题商品标题商品标题商品标题商品标题',spec:'规格:S码',price:127.5,number:1,selected:false},
-					{id:5,img:'/static/img/goods/p5.jpg',name:'商品标题商品标题商品标题商品标题商品标题商品标题商品标题商品标题商品标题商品标题',spec:'规格:S码',price:127.5,number:1,selected:false}
-				],
+				goodsList:[],
 				//控制滑动效果
 				theIndex:null,
 				oldIndex:null,
 				isStop:false
 			}
 		},
-		onPageScroll(e){
-			//兼容iOS端下拉时顶部漂移
-			this.headerPosition = e.scrollTop>=0?"fixed":"absolute";
-			this.headerTop = e.scrollTop>=0?null:0;
-			this.statusTop = e.scrollTop>=0?null:-this.statusHeight+'px';
-		},
-		//下拉刷新，需要自己在page.json文件中配置开启页面下拉刷新 "enablePullDownRefresh": true
-		onPullDownRefresh() {
-		    setTimeout(function () {
-		        uni.stopPullDownRefresh();
-		    }, 1000);
-		},
+		
 		onLoad() {
 			//兼容H5下结算条位置
 			// #ifdef H5
@@ -112,8 +96,24 @@
 			this.showHeader = false;
 			this.statusHeight = plus.navigator.getStatusbarHeight();
 			// #endif
+			this.token = localStorage.getItem('token')
+		},
+		onShow() {
+			uni.hideTabBarRedDot({
+				index: 2
+			})
+		},
+		beforeMount () {
+			this.getGoods()
 		},
 		methods: {
+			getGoods () {
+				this.$http.post('api/user/get/car', {
+					token: this.token
+				}).then(res => {
+					this.goodsList = res.data
+				})
+			},
 			//加入商品 参数 goods:商品数据
 			joinGoods(goods){
 				/*
@@ -193,7 +193,7 @@
 			toGoods(e){
 				uni.showToast({title: '商品'+e.id,icon:"none"});
 				uni.navigateTo({
-					url: '../../goods/goods' 
+					url: '../../goods/goods?goodsId=' + e.goods_id
 				});
 			},
 			//跳转确认订单页面
@@ -224,24 +224,38 @@
 			},
 			//删除商品
 			deleteGoods(id){
-				let len = this.goodsList.length;
-				for(let i=0;i<len;i++){
-					if(id==this.goodsList[i].id){
-						this.goodsList.splice(i, 1);
-						break;
+				this.$http.post('api/user/del/car', {
+					token: this.token,
+					id
+				}).then(res=> {
+					uni.showToast({
+						icon: 'none',
+						title: res.message
+					})
+					if (res.message = '删除成功') {
+						let len = this.goodsList.length;
+						for(let i=0;i<len;i++){
+							if(id==this.goodsList[i].id){
+								this.goodsList.splice(i, 1);
+								break;
+							}
+						}
+						this.selectedList.splice(this.selectedList.indexOf(id), 1);
+						this.sum();
+						this.oldIndex = null;
+						this.theIndex = null;
 					}
-				}
-				this.selectedList.splice(this.selectedList.indexOf(id), 1);
-				this.sum();
-				this.oldIndex = null;
-				this.theIndex = null;
+				})
+				
 			},
 			// 删除商品s
 			deleteList(){
+				
 				let len = this.selectedList.length;
-				while (this.selectedList.length>0)
-				{
-					this.deleteGoods(this.selectedList[0]);
+				if (len > 0) {
+					this.selectedList.forEach(ele=> {
+						this.deleteGoods(ele)
+					})
 				}
 				this.selectedList = [];
 				this.isAllselected = this.selectedList.length == this.goodsList.length && this.goodsList.length>0;
@@ -269,15 +283,15 @@
 			},
 			// 减少数量
 			sub(index){
-				if(this.goodsList[index].number<=1){
+				if(this.goodsList[index].num<=1){
 					return;
 				}
-				this.goodsList[index].number--;
+				this.goodsList[index].num--;
 				this.sum();
 			},
 			// 增加数量
 			add(index){
-				this.goodsList[index].number++;
+				this.goodsList[index].num++;
 				this.sum();
 			},
 			// 合计
@@ -289,7 +303,7 @@
 						if(e && i==index){
 							this.sumPrice = this.sumPrice + (e.detail.value*this.goodsList[i].price);
 						}else{
-							this.sumPrice = this.sumPrice + (this.goodsList[i].number*this.goodsList[i].price);
+							this.sumPrice = this.sumPrice + (this.goodsList[i].num*this.goodsList[i].price);
 						}
 					}
 				}
@@ -298,8 +312,23 @@
 			discard() {
 				//丢弃
 			}
-			
-			
+		},
+		onPageScroll(e){
+			//兼容iOS端下拉时顶部漂移
+			this.headerPosition = e.scrollTop>=0?"fixed":"absolute";
+			this.headerTop = e.scrollTop>=0?null:0;
+			this.statusTop = e.scrollTop>=0?null:-this.statusHeight+'px';
+		},
+		//下拉刷新，需要自己在page.json文件中配置开启页面下拉刷新 "enablePullDownRefresh": true
+		onPullDownRefresh() {
+			this.getGoods()
+			this.selectedList = []
+			this.isAllselected = false
+			this.sumPrice = 0
+		    setTimeout(function () {
+		        uni.stopPullDownRefresh();
+				
+		    }, 1000);
 		}
 	}
 </script>
@@ -487,6 +516,7 @@
 							font-size: 28upx;
 							height: 60upx;
 							.price{
+								color: #FF3333;
 							}
 							.number{
 								display: flex;

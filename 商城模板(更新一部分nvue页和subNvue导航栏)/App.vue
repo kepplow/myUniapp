@@ -1,7 +1,7 @@
 <script>
 	export default {
 		onLaunch: function () {
-			localStorage.setItem('token', 'D9150A44BE324855FCEF60BE91F49B6D629C4686')
+			// localStorage.setItem('token', '07F6D171FB7A2FB12866BAF6B38FFE5D7B2B1F04')
 		},
 		onShow: function () {
 			console.log('App Show')

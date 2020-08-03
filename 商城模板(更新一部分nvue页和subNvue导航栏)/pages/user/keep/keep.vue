@@ -1,11 +1,11 @@
 <template>
 	<view>
-		<view class="tabr" :style="{top:headerTop}">
+		<!-- <view class="tabr" :style="{top:headerTop}">
 			<view :class="{on:typeClass=='goods'}" @tap="switchType('goods')">商品({{goodsList.length}})</view>
 			<view :class="{on:typeClass=='shop'}"  @tap="switchType('shop')">店铺({{shopList.length}})</view>
 			<view class="border" :class="typeClass"></view>
-		</view>
-		<view class="place" ></view>
+		</view> -->
+		<!-- <view class="place" ></view> -->
 		<view class="list">
 			<!-- 优惠券列表 -->
 			<view class="sub-list goods" :class="subState">
@@ -19,15 +19,15 @@
 					<view class="carrier" :class="[typeClass=='goods'?theIndex==index?'open':oldIndex==index?'close':'':'']" @touchstart="touchStart(index,$event)" @touchmove="touchMove(index,$event)" @touchend="touchEnd(index,$event)">
 						<view class="goods-info" @tap="toGoods(row)">
 							<view class="img">
-								<image :src="row.img"></image>
+								<image :src="row.goods_img"></image>
 							</view>
 							<view class="info">
-								<view class="title">{{row.name}}</view>
+								<view class="title">{{row.title}}</view>
 								<view class="price-number">
 									<view class="keep-num">
-										905人收藏
+										￥{{row.price}}
 									</view>
-									<view class="price">￥{{row.price}}</view>
+									<view class="price">￥{{row.actual_price}}</view>
 									
 								</view>
 							</view>
@@ -35,15 +35,15 @@
 					</view>
 				</view>
 			</view>
-			<view class="sub-list shop" :class="subState">
+			<!-- <view class="sub-list shop" :class="subState">
 				<view class="tis" v-if="shopList.length==0">没有数据~</view>
-				<view class="row" v-for="(row,index) in shopList" :key="index" >
+				<view class="row" v-for="(row,index) in shopList" :key="index" > -->
 					<!-- 删除按钮 -->
-					<view class="menu" @tap.stop="deleteCoupon(row.id,shopList)">
+					<!-- <view class="menu" @tap.stop="deleteCoupon(row.id,shopList)">
 						<view class="icon shanchu"></view>
-					</view>
+					</view> -->
 					<!-- content -->
-					<view class="carrier" :class="[typeClass=='shop'?theIndex==index?'open':oldIndex==index?'close':'':'']" @touchstart="touchStart(index,$event)" @touchmove="touchMove(index,$event)" @touchend="touchEnd(index,$event)">
+					<!-- <view class="carrier" :class="[typeClass=='shop'?theIndex==index?'open':oldIndex==index?'close':'':'']" @touchstart="touchStart(index,$event)" @touchmove="touchMove(index,$event)" @touchend="touchEnd(index,$event)">
 						<view class="left">
 							<image :src="row.img"></image>
 						</view>
@@ -54,7 +54,7 @@
 						</view>
 					</view>
 				</view>
-			</view>
+			</view> -->
 		</view>
 		
 	</view>
@@ -65,11 +65,8 @@
 	export default {
 		data() {
 			return {
-				goodsList:[
-					{id:1,img:'/static/img/goods/p1.jpg',name:'商品标题商品标题商品标题商品标题商品标题商品标题商品标题商品标题商品标题商品标题',spec:'规格:S码',price:127.5,number:1,selected:false},
-					{id:2,img:'/static/img/goods/p1.jpg',name:'商品标题商品标题商品标题商品标题商品标题商品标题商品标题商品标题商品标题商品标题',spec:'规格:S码',price:127.5,number:1,selected:false},
-					{id:3,img:'/static/img/goods/p1.jpg',name:'商品标题商品标题商品标题商品标题商品标题商品标题商品标题商品标题商品标题商品标题',spec:'规格:S码',price:127.5,number:1,selected:false},
-				],
+				token: '',
+				goodsList:[],
 				shopList:[
 					{id:1,name:"冰鲜专卖店",img:"/static/img/shop/1.jpg"},
 					{id:2,name:"果蔬天下",img:"/static/img/shop/2.jpg"},
@@ -95,6 +92,8 @@
 		    }, 1000);
 		},
 		onLoad() {
+			this.token = localStorage.getItem('token')
+			this.getGoods()
 			//兼容H5下排序栏位置
 			// #ifdef H5
 				//定时器方式循环获取高度为止，这么写的原因是onLoad中head未必已经渲染出来。
@@ -108,6 +107,18 @@
 			// #endif
 		},
 		methods: {
+			toGoods (row) {
+				uni.navigateTo({
+					url: '../../goods/goods?goodsId=' + row.id
+				})
+			},
+			getGoods () {
+				this.$http.post('api/get/user/collection', {
+					token: this.token
+				}).then(res=> {
+					this.goodsList = res.data
+				})
+			},
 			switchType(type){
 				if(this.typeClass==type){
 					return ;
@@ -176,15 +187,28 @@
 			
 			//删除商品
 			deleteCoupon(id,List){
-				let len = List.length;
-				for(let i=0;i<len;i++){
-					if(id==List[i].id){
-						List.splice(i, 1);
-						break;
+				// let len = List.length;
+				// for(let i=0;i<len;i++){
+				// 	if(id==List[i].id){
+				// 		List.splice(i, 1);
+				// 		break;
+				// 	}
+				// }
+				
+				this.$http.post('api/user/goods/collect', {
+					token: this.token,
+					goodsID: id
+				}).then(res=> {
+					if (res.code == 200) {
+						this.oldIndex = null;
+						this.theIndex = null;
+						this.getGoods()
+						uni.showToast({
+							icon: 'none',
+							title: res.message
+						})
 					}
-				}
-				this.oldIndex = null;
-				this.theIndex = null;
+				})
 			},
 			
 			discard() {
@@ -196,6 +220,11 @@
 	}
 </script>
 <style lang="scss">
+	/* #ifdef H5 */
+	    uni-page-head {
+	        display: none;
+	    }
+	/* #endif */
 	view{
 		display: flex;
 		flex-wrap: wrap;
@@ -378,6 +407,7 @@
 							align-items: baseline;
 							
 							.keep-num{
+								text-decoration: line-through;
 								font-size: 26upx;
 								color: #999;
 							}

@@ -16,7 +16,11 @@
 			</view>
 			<view class="form-item">
 				<view class="label">购买数量</view>
-				<input type="number" v-model="commitData.num" placeholder="输入购买数量" />
+				<input type="text" v-model="commitData.num" placeholder="输入购买数量" />
+			</view>
+			<view class="form-item">
+				<view class="label">尺寸</view>
+				<input type="number" v-model="commitData.specs" placeholder="输入购买数量" />
 			</view>
 			<view class="form-item">
 				<view class="label">收货地址</view>
@@ -36,6 +40,7 @@
 	export default {
 		data() {
 			return {
+				goodsSpecs: [],
 				goodsImage: '',
 				goodsId: '',
 				oid: '',
@@ -48,7 +53,8 @@
 					name: '',
 					phone: '',
 					address:'',
-					num: 1
+					num: '1',
+					specs: ''
 				},
 				
 			}
@@ -63,6 +69,8 @@
 			this.oid = localStorage.getItem('oid')
 			this.goodsId = data.goodsId
 			this.goodsImage = data.goodsImage
+			this.goodsSpecs = JSON.parse(decodeURIComponent(data.goodsSpecs))
+			console.log(data.goodsSpecs)
 			this.getAddress()
 		},
 		methods: {

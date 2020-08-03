@@ -133,7 +133,7 @@
 			},
 			commit() {
 				uni.navigateTo({
-					url: `../pay/payment/payment/payment?goodsId=${this.goodsData.goods_id}&goodsImage=${this.goodsData.goods_images}`
+					url: `../pay/payment/payment/payment?goodsId=${this.goodsData.goods_id}&goodsImage=${this.goodsData.goods_images}&goodsSpecs=${JSON.stringify(this.goodsData.specs)}`
 				})
 			},
 			hanshum(str) {

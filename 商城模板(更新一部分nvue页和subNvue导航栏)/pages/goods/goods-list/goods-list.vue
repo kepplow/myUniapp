@@ -1,26 +1,36 @@
 <template>
 	<view>
-		<view class="header" :style="{position:headerPosition,top:headerTop}">
+		<view class="header" :style="{position:headerPosition}">
+			<!-- <view class="addr"><view class="icon location"></view>{{city}}</view> -->
+			<view class="input-box">
+				<input placeholder="默认关键字" placeholder-style="color:#c0c0c0;" v-model="searchData" />
+				<view class="icon search" @tap="search"></view>
+			</view>
+			<!-- <view class="icon-btn">
+				<view class="icon tongzhi" @tap="toMsg"></view>
+			</view> -->
+		</view>
+		<!-- <view class="header" :style="{position:headerPosition,top:headerTop}">
 			<view class="target" v-for="(target,index) in orderbyList" @tap="select(index)" :key="index" :class="[target.selected?'on':'']">
 				{{target.text}}
 				<view v-if="target.orderbyicon" class="icon" :class="target.orderbyicon[target.orderby]"></view>
 			</view>
-		</view> 
+		</view> -->
 		<!-- 占位 -->
 		<view class="place"></view>
 		<!-- 商品列表 -->
 		<view class="goods-list">
 			<view class="product-list">
 				<view class="product" v-for="(goods) in goodsList" :key="goods.goods_id" @tap="toGoods(goods)">
-					<image mode="widthFix" :src="goods.img"></image>
-					<view class="name">{{goods.name}}</view>
+					<image mode="widthFix" :src="goods.goods_img"></image>
+					<view class="name">{{goods.title}}</view>
 					<view class="info">
-						<view class="price">{{goods.price}}</view>
-						<view class="slogan">{{goods.slogan}}</view>
+						<view class="price">{{goods.actual_price}}</view>
+						<view class="slogan">￥{{goods.price}}</view>
 					</view>
 				</view>
 			</view>
-			<view class="loading-text">{{loadingText}}</view>
+			<!-- <view class="loading-text">{{loadingText}}</view> -->
 		</view>
 	</view>
 </template>
@@ -29,34 +39,30 @@
 	export default {
 		data() {
 			return {
-				goodsList:[
-					{ goods_id: 0, img: '/static/img/goods/p1.jpg', name: '商品名称商品名称商品名称商品名称商品名称', price: '￥168', slogan:'1235人付款' },
-					{ goods_id: 1, img: '/static/img/goods/p2.jpg', name: '商品名称商品名称商品名称商品名称商品名称', price: '￥168', slogan:'1235人付款' },
-					{ goods_id: 2, img: '/static/img/goods/p3.jpg', name: '商品名称商品名称商品名称商品名称商品名称', price: '￥168', slogan:'1235人付款' },
-					{ goods_id: 3, img: '/static/img/goods/p4.jpg', name: '商品名称商品名称商品名称商品名称商品名称', price: '￥168', slogan:'1235人付款' },
-					{ goods_id: 4, img: '/static/img/goods/p5.jpg', name: '商品名称商品名称商品名称商品名称商品名称', price: '￥168', slogan:'1235人付款' },
-					{ goods_id: 5, img: '/static/img/goods/p6.jpg', name: '商品名称商品名称商品名称商品名称商品名称', price: '￥168', slogan:'1235人付款' },
-					{ goods_id: 6, img: '/static/img/goods/p7.jpg', name: '商品名称商品名称商品名称商品名称商品名称', price: '￥168', slogan:'1235人付款' },
-					{ goods_id: 7, img: '/static/img/goods/p8.jpg', name: '商品名称商品名称商品名称商品名称商品名称', price: '￥168', slogan:'1235人付款' },
-					{ goods_id: 8, img: '/static/img/goods/p9.jpg', name: '商品名称商品名称商品名称商品名称商品名称', price: '￥168', slogan:'1235人付款' },
-					{ goods_id: 9, img: '/static/img/goods/p10.jpg', name: '商品名称商品名称商品名称商品名称商品名称', price: '￥168', slogan:'1235人付款' }
-				],
+				searchData: '',
+				token: '',
+				goodsList:[],
 				loadingText:"正在加载...",
 				headerTop:"0px",
 				headerPosition:"fixed",
-				orderbyList:[
-					{text:"销量",selected:true,orderbyicon:false,orderby:0},
-					{text:"价格",selected:false,orderbyicon:['sheng','jiang'],orderby:0},
-					{text:"好评",selected:false,orderbyicon:false,orderby:0}
-				],
+				// orderbyList:[
+				// 	{text:"销量",selected:true,orderbyicon:false,orderby:0},
+				// 	{text:"价格",selected:false,orderbyicon:['sheng','jiang'],orderby:0},
+				// 	{text:"好评",selected:false,orderbyicon:false,orderby:0}
+				// ],
 				orderby:"sheng"
 			};
 		},
 		onLoad: function (option) { //option为object类型，会序列化上个页面传递的参数
+			this.token = localStorage.getItem('token')
 			console.log(option.cid); //打印出上个页面传递的参数。
-			uni.setNavigationBarTitle({
-				title: option.name
-			});
+			if (option.cid != undefined) {
+				this.randerGoods(option.cid)
+				this.searchData = option.name
+			}
+			// uni.setNavigationBarTitle({
+			// 	title: option.name
+			// });
 			
 			//兼容H5下排序栏位置
 			// #ifdef H5
@@ -69,6 +75,69 @@
 					}
 				},1);
 			// #endif
+		},
+		methods:{
+			// 分类商品数据
+			randerGoods (cid) {
+				this.$http.post('api/get/class/goods', {
+					classId: cid
+				}).then(res => {
+					this.goodsList = res.data
+				})
+			},
+			// 搜索
+			search () {
+				if (this.searchData === '' || this.searchData === null || this.searchData === undefined) {
+					uni.showToast({
+						icon: 'none',
+						title: '请输入搜索关键字'
+					})
+					return
+				}
+				this.$http.post('api/get/search', {
+					searchKey: this.searchData
+				}).then(res=> {
+					this.goodsList = res.data
+				})
+			},
+			reload(){
+				console.log("reload");
+				let tmpArr = []
+				this.goodsList = [];
+				let end_goods_id = 0;
+				for(let i=1;i<=10;i++){
+					let goods_id = end_goods_id+i;
+					let p = { goods_id: goods_id, img: '/static/img/goods/p'+(goods_id%10==0?10:goods_id%10)+'.jpg', name: '商品名称商品名称商品名称商品名称商品名称', price: '￥168', slogan:'1235人付款' };
+					this.goodsList.push(p);
+				}
+			},
+			//商品跳转
+			toGoods(e){
+				uni.showToast({title: '商品'+e.goods_id,icon:"none"});
+				uni.navigateTo({
+					url: '../goods?goodsId=' + e.id 
+				});
+			},
+			//排序类型
+			select(index){
+				let tmpTis = this.orderbyList[index].text+"排序 "
+				if(this.orderbyList[index].orderbyicon){
+					let type = this.orderbyList[index].orderby==0?'升序':'降序';
+					if(this.orderbyList[index].selected){
+						type = this.orderbyList[index].orderby==0?'降序':'升序';
+						this.orderbyList[index].orderby = this.orderbyList[index].orderby==0?1:0;
+					}
+					tmpTis+=type
+				}
+				this.orderbyList[index].selected = true;
+				let len = this.orderbyList.length;
+				for(let i=0;i<len;i++){
+					if(i!=index){
+						this.orderbyList[i].selected = false;
+					}
+				}
+				uni.showToast({title:tmpTis,icon:"none"});
+			}
 		},
 		onPageScroll(e){
 			//兼容iOS端下拉时顶部漂移
@@ -101,48 +170,7 @@
 				let p = { goods_id: goods_id, img: '/static/img/goods/p'+(goods_id%10==0?10:goods_id%10)+'.jpg', name: '商品名称商品名称商品名称商品名称商品名称', price: '￥168', slogan:'1235人付款' };
 				this.goodsList.push(p);
 			}
-		},
-		methods:{
-			reload(){
-				console.log("reload");
-				let tmpArr = []
-				this.goodsList = [];
-				let end_goods_id = 0;
-				for(let i=1;i<=10;i++){
-					let goods_id = end_goods_id+i;
-					let p = { goods_id: goods_id, img: '/static/img/goods/p'+(goods_id%10==0?10:goods_id%10)+'.jpg', name: '商品名称商品名称商品名称商品名称商品名称', price: '￥168', slogan:'1235人付款' };
-					this.goodsList.push(p);
-				}
-			},
-			//商品跳转
-			toGoods(e){
-				uni.showToast({title: '商品'+e.goods_id,icon:"none"});
-				uni.navigateTo({
-					url: '../goods' 
-				});
-			},
-			//排序类型
-			select(index){
-				let tmpTis = this.orderbyList[index].text+"排序 "
-				if(this.orderbyList[index].orderbyicon){
-					let type = this.orderbyList[index].orderby==0?'升序':'降序';
-					if(this.orderbyList[index].selected){
-						type = this.orderbyList[index].orderby==0?'降序':'升序';
-						this.orderbyList[index].orderby = this.orderbyList[index].orderby==0?1:0;
-					}
-					tmpTis+=type
-				}
-				this.orderbyList[index].selected = true;
-				let len = this.orderbyList.length;
-				for(let i=0;i<len;i++){
-					if(i!=index){
-						this.orderbyList[i].selected = false;
-					}
-				}
-				uni.showToast({title:tmpTis,icon:"none"});
-			}
 		}
-		
 	}
 </script>
 
@@ -153,32 +181,71 @@
 	.header{
 		width: 92%;
 		padding: 0 4%;
-		height: 79upx;
+		height: 100upx;
 		display: flex;
-		justify-content: space-around;
-		align-items: flex-end;
+		align-items: center;
 		position: fixed;
 		top: 0;
 		z-index: 10;
 		background-color: #fff;
-		border-bottom: solid 1upx #eee;
-		.target{
-			width: 20%;
+		/*  #ifdef  APP-PLUS  */
+		top: var(--status-bar-height);
+		/*  #endif  */
+		
+		.addr{
+			width: 120upx;
 			height: 60upx;
+			flex-shrink: 0;
 			display: flex;
-			justify-content: center;
 			align-items: center;
 			font-size: 28upx;
-			margin-bottom: -2upx;
-			color: #aaa;
-			&.on{
-				color: #555;
-				border-bottom: 4upx solid #f06c7a;
-				font-weight: 600;
-				font-size: 30upx;
+			.icon{
+				height: 60upx; 
+				margin-right: 5upx;
+				display: flex;
+				align-items: center;
+				font-size: 42upx;
+				color: #ffc50a;
 			}
-			
-			
+		}
+		.input-box{
+			width: 100%;
+			height: 60upx;
+			background-color: #f5f5f5;
+			border-radius: 30upx;
+			position: relative;
+			display: flex;
+			align-items: center;
+			.icon{
+				display: flex;
+				align-items: center;
+				position: absolute;
+				top:0;
+				right: 0;
+				width: 60upx;
+				height: 60upx;
+				font-size: 34upx;
+				color: #c0c0c0;
+			}
+			input{
+				padding-left: 28upx;
+				height: 28upx;
+				font-size: 28upx;
+			}
+		}
+		.icon-btn{
+			width: 60upx;
+			height: 60upx;
+			flex-shrink: 0;
+			display: flex;
+			.icon{
+				width: 60upx;
+				height: 60upx;
+				display: flex;
+				justify-content: flex-end;
+				align-items: center;
+				font-size: 42upx;
+			}
 		}
 	}
 .place{
@@ -238,6 +305,7 @@
 					.slogan{
 						color: #807c87;
 						font-size: 24upx;
+						text-decoration: line-through;
 					}
 				}
 			}

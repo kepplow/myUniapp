@@ -67,5 +67,14 @@
             "urlCheck" : true
         },
         "permission" : {}
+    },
+    "h5" : {
+        "router" : {
+            "mode" : "history"
+        },
+        "devServer" : {
+            "https" : false
+        },
+        "title" : "同城爱享购"
     }
 }

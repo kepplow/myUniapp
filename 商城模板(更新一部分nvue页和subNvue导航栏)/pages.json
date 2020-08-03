@@ -47,7 +47,6 @@
 		{
 			"path": "pages/tabBar/user/user",
 			"style": {
-				"enablePullDownRefresh": true,
 				"backgroundTextStyle":"light",
 				"navigationBarBackgroundColor":"#f06c7a",
 				"backgroundColorTop":"#f06c7a",
@@ -68,10 +67,22 @@
 				"navigationBarTitleText" : "",
 				"enablePullDownRefresh": true,
 				"app-plus": {
+					"titleNView": false ,//禁用原生导航栏
 					"bounce":"none"
 				}
 			}
         },
+		{
+		    "path" : "pages/activity/activities",
+		    "style" : {
+				"navigationBarTitleText" : "",
+				"enablePullDownRefresh": true,
+				"app-plus": {
+					"titleNView": false ,//禁用原生导航栏
+					"bounce":"none"
+				}
+			}
+		},
 		{
 		    "path" : "pages/goods/goods",
 		    "style" : {
@@ -257,6 +268,7 @@
         }
     ],
 	"globalStyle": {
+		"navigationStyle":"custom",
 		"navigationBarTextStyle": "black",
 		"navigationBarTitleText" : "",
 		"navigationBarBackgroundColor" : "#ffffff",

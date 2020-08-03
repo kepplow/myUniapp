@@ -10,8 +10,8 @@
 				{{ city }}
 			</view> -->
 			<!-- 搜索框 -->
-			<view class="input-box">
-				<input placeholder="默认关键字" placeholder-style="color:#c0c0c0;" @tap="toSearch()" />
+			<view class="input-box" @tap="toSearch">
+				<input placeholder="点击搜索" placeholder-style="color:#c0c0c0;" :disabled="true" />
 				<view class="icon search"></view>
 			</view>
 			<!-- 右侧图标按钮 -->
@@ -48,7 +48,7 @@
 			</view>
 		</view> -->
 		<!-- 广告图 -->
-		<view class="banner">
+		<view class="banner" v-if="activity" @tap="toActivity">
 			<image :src="activity.title_img"></image>
 		</view>
 		<!-- 活动区 -->
@@ -98,12 +98,12 @@
 			<view class="product-list">
 				<view class="product" v-for="product in productList" :key="product.goods_id" @tap="toGoods(product)">
 					<image class="goods-image" mode="widthFix" :src="product.goods_img && product.goods_img[0]"></image>
-					<image class="like" src="../../../static/img/head@2x.png" mode=""></image>
+					<image v-if="product.is_collection !== undefined" @tap.stop="changeLike(product.goods_id)" class="like" :src="product.is_collection ? '../../../static/img/head-rad@2x.png' : '../../../static/img/head@2x.png'" mode=""></image>
 					<view class="name">{{ product.title }}</view>
 					<view class="explain">{{ product.explain }}</view>
 					<view class="info">
-						<view class="price">￥{{ product.price }}</view>
-						<view class="slogan">+</view>
+						<view class="price">￥{{ product.actual_price }}</view>
+						<view class="slogan" @tap.stop="addCar(product)">+</view>
 					</view>
 				</view>
 			</view>
@@ -114,10 +114,10 @@
 		</view>
 		
 		<view class="goods-list-2">
-			<view class="item" v-for="item in categoryList" :key="item.id">
+			<view class="item" v-for="item in categoryList" :key="item.id" @tap="toGoods(item)">
 				<image :src="item.goods_img && item.goods_img[0]"></image>
 				<view class="title">{{item.title}}</view>
-				<view class="price">￥<text>{{item.price}}</text></view>
+				<view class="price">￥<text>{{item.actual_price}}</text></view>
 			</view>
 			
 		</view>
@@ -129,6 +129,9 @@
 	export default {
 		data() {
 			return {
+				timer: null,
+				likeFlag: false,
+				token: '',
 				activity: {},
 				showHeader: true,
 				afterHeaderOpacity: 1, //不透明度
@@ -149,7 +152,7 @@
 		},
 		
 		onLoad() {
-			uni.showTabBarRedDot({index:2});
+			
 			// #ifdef APP-PLUS
 			this.nVueTitle = uni.getSubNVueById('homeTitleNvue');
 			this.nVueTitle.onMessage(res => {
@@ -164,19 +167,82 @@
 			
 		},
 		beforeMount() {
+			this.token = localStorage.getItem('token')
 			this.renderSwiper()
 			this.randerActivity()
 			this.randergoods()
 		},
 		
 		methods: {
-			randergoods () {
-				this.$http.post('api/home/class/goods').then(res=> {
+			toActivity () {
+				uni.navigateTo({
+					url: '../../activity/activities?activityId=' + this.activity.id + '&invalid_time=' + this.activity.invalid_time
+				})
+			},
+			// 添加至购物车
+			addCar (goods) {
+				this.$http.post('api/user/add/car', {
+					token: this.token,
+					goodsId: goods.goods_id,
+					num: 1,
+					isActive: '2'
+				}).then(res=> {
+					if (res.message == '添加成功') {
+						uni.showTabBarRedDot({index:2});
+					}
+					uni.showToast({
+						icon: 'none',
+						title: res.message
+					})
+				})
+			},
+			// 收藏状态改变
+			changeLike (id) {
+				if (this.likeFlag) {
+					uni.showToast({
+						icon: 'none',
+						title: '请稍后再试'
+					})
+					return
+				}
+				clearTimeout(this.timer)
+				this.$http.post('api/user/goods/collect',{
+					token: this.token,
+					goodsID: id
+				}).then(res=> {
 					console.log(res)
+					this.likeFlag = true
+					this.timer = setTimeout(()=>{
+						this.likeFlag = false
+					},3000)
+					if (res.message == 'OK') {
+						this.randergoods()
+					}
+					uni.showToast({
+						icon: 'none',
+						title: res.message
+					})
+				},rej => {
+					uni.showToast({
+						icon: 'none',
+						title: rej + '请稍后再试'
+					})
+				})
+			},
+			randergoods () {
+				this.$http.post('api/home/class/goods',{
+					token: this.token
+				}).then(res=> {
+					
 					let product = res.data.find(ele=> ele.name == '本周热卖')
-					let categoryList = res.data.find(ele=> ele.name == '挑选推荐')
+					let categoryList = res.data.find(ele=> ele.name == '为您推荐')
+					
 					this.productList = product.goods_list
-					this.categoryList = categoryList.goods_list
+					if (categoryList.goods_list.length > 4) {
+						this.categoryList = categoryList.goods_list.splice(0,4)
+					} else {
+						this.categoryList = categoryList.goods_list
+					}
 				})
 			},
 			randerActivity () {
@@ -199,9 +265,9 @@
 			},
 			//搜索跳转
 			toSearch() {
-				uni.showToast({
-					title: '建议跳转到新页面做搜索功能'
-				});
+				uni.navigateTo({
+					url: '../../goods/goods-list/goods-list'
+				})
 			},
 			//轮播图跳转
 			toSwiper(e) {
@@ -209,6 +275,9 @@
 				// 	title: e.src,
 				// 	icon: 'none'
 				// });
+				if (e.url) {
+					location.href = e.url
+				}
 			},
 			//分类跳转
 			toCategory(e) {
@@ -232,7 +301,7 @@
 					icon: 'none'
 				});
 				uni.navigateTo({
-					url: '../../goods/goods'
+					url: '../../goods/goods?goodsId=' + e.goods_id
 				});
 			},
 			//轮播图指示器
@@ -254,9 +323,9 @@
 		},
 		//上拉加载，需要自己在page.json文件中配置"onReachBottomDistance"
 		onReachBottom() {
-			uni.showToast({
-				title: '触发上拉加载'
-			});
+			// uni.showToast({
+			// 	title: '触发上拉加载'
+			// });
 			// let len = this.productList.length;
 			// if (len >= 40) {
 			// 	this.loadingText = '到底了';

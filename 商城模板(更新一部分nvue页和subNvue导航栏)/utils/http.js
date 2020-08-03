@@ -3,7 +3,7 @@ import Request from '@/common/luch-request/index.js'
 const http = new Request();
 
 http.setConfig((config) => { /* config 为默认全局配置*/
-	config.baseURL = 'http://wx.sccdlc.com/'; /* 根域名 */
+	config.baseURL = 'http://lysv.sccdlc.com/'; /* 根域名 */
 	// config.header = {
 	// 	a: 1, // 演示用
 	// 	b: 2 // 演示用
@@ -41,7 +41,7 @@ http.interceptors.response.use((response) => { /* 对响应成功做点什么 �
 	//   return response.data
 	// }
 	if (response.data.code == 302) {
-		location.href = 'http://wx.sccdlc.com/wx/auth'
+		location.href = 'http://lysv.sccdlc.com/wx/auth'
 	}
 	if (response.data.code !== 200) {
 		uni.showToast({

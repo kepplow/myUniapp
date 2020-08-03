@@ -14,6 +14,12 @@
 				<view class="label">手机号码</view>
 				<input type="number" v-model="commitData.phone" placeholder="请输入您的手机号码" />
 			</view>
+			<view class="form-item" v-if="goodsSpecs.length">
+				<view class="label">尺码</view>
+				<picker @change="pickerChange" :value="pickerIndex" :range="goodsSpecs">
+					<view class="uni-input">{{goodsSpecs[pickerIndex]}}</view>
+				</picker>
+			</view>
 			<view class="form-item">
 				<view class="label">购买数量</view>
 				<input type="number" v-model="commitData.num" placeholder="输入购买数量" />
@@ -36,6 +42,8 @@
 	export default {
 		data() {
 			return {
+				pickerIndex: 0,
+				goodsSpecs: [],
 				goodsImage: '',
 				goodsId: '',
 				oid: '',
@@ -48,7 +56,8 @@
 					name: '',
 					phone: '',
 					address:'',
-					num: 1
+					num: '1',
+					specs: ''
 				},
 				
 			}
@@ -63,9 +72,17 @@
 			this.oid = localStorage.getItem('oid')
 			this.goodsId = data.goodsId
 			this.goodsImage = data.goodsImage
+			this.goodsSpecs = JSON.parse(decodeURIComponent(data.goodsSpecs))
+			this.commitData.specs = this.goodsSpecs.length && this.goodsSpecs[0]
+			
 			this.getAddress()
 		},
 		methods: {
+			pickerChange (e) {
+				this.pickerIndex = e.target.value
+				console.log(this.goodsSpecs[e.target.value])
+				this.commitData.specs = this.goodsSpecs[e.target.value]
+			},
 			getAddress () {
 				let that = this
 				uni.request({
