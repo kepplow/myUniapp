@@ -92,7 +92,7 @@
 		    }, 1000);
 		},
 		onLoad() {
-			this.token = localStorage.getItem('token')
+			this.token = uni.getStorageSync('token')
 			this.getGoods()
 			//兼容H5下排序栏位置
 			// #ifdef H5

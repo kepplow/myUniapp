@@ -30,7 +30,7 @@
 
 					</view>
 					<view class="detail">
-						<view class="time">今天{{row.create_time.split(' ')[1]}}</view>
+						<view class="time">{{row.create_time}}</view>
 						<view class="sum">实付金额:<view class="price">￥{{row.pay_price}}</view>
 						</view>
 					</view>
@@ -81,7 +81,8 @@
 			};
 		},
 		onLoad(option) {
-			this.token = localStorage.getItem('token');
+			// this.token = localStorage.getItem('token');
+			this.token = uni.getStorageSync('token')
 			//option为object类型，会序列化上个页面传递的参数
 			console.log("option: " + JSON.stringify(option));
 			let tbIndex = parseInt(option.tbIndex);
@@ -146,7 +147,8 @@
 							this.getOrder()
 						} else {
 							uni.showToast({
-								title: res.err_code + res.err_desc + res.err_msg
+								icon: 'none',
+								title: '支付失败'
 							})
 						}
 					}
@@ -234,14 +236,55 @@
 				// 		}
 				// 	})
 				// }, 500)
-
-				this.$http.post('api/wx/pay', {
+				
+				// #ifdef H5
+					let pay_type = 1
+					let url = 'api/wx/pay'
+				// #endif
+				// #ifdef MP
+					let pay_type = 2
+					let url = 'api/applets/wx/pay'
+				// #endif
+				
+				this.$http.post(url, {
 					token: this.token,
-					order_id: row.order_id
+					order_id: row.order_id,
+					pay_type
 				}).then(res => {
-					this.jsApiCall(JSON.parse(res.data.pay));
+					// #ifdef H5
+						this.jsApiCall(JSON.parse(res.data.pay));
+					// #endif
+					
+					// #ifdef MP
+						this.MPPay(JSON.parse(res.data.pay))
+					// #endif
 				})
-			}
+			},
+			MPPay (payData) {
+				uni.requestPayment({
+				    ...payData,
+					provider: 'wxpay',
+				    success: function (res) {
+				        uni.hideLoading();
+				        uni.showToast({
+				        	title: '支付成功！',
+				        	icon: 'none'
+				        })
+				        setTimeout(() => {
+				        	uni.navigateTo({
+				        		url: 'pages/user/order_list/order_list?tbIndex=2'
+				        	})
+				        }, 500)
+				    },
+				    fail: function (err) {
+				        uni.hideLoading();
+				        uni.showToast({
+				        	title: '支付失败！',
+				        	icon: 'none'
+				        })
+				    }
+				});
+			},
 		}
 	}
 </script>

@@ -78,7 +78,7 @@
 				statusTop:null,
 				showHeader:true,
 				selectedList:[],
-				isAllselected:false,
+				isAllselected: false,
 				goodsList:[],
 				//控制滑动效果
 				theIndex:null,
@@ -96,15 +96,14 @@
 			this.showHeader = false;
 			this.statusHeight = plus.navigator.getStatusbarHeight();
 			// #endif
-			this.token = localStorage.getItem('token')
+			this.token = uni.getStorageSync('token')
 		},
 		onShow() {
 			uni.hideTabBarRedDot({
 				index: 2
 			})
-		},
-		beforeMount () {
 			this.getGoods()
+			this.isAllselected = false
 		},
 		methods: {
 			getGoods () {
@@ -266,7 +265,7 @@
 				this.goodsList[index].selected = this.goodsList[index].selected?false:true;
 				let i = this.selectedList.indexOf(this.goodsList[index].id);
 				i>-1?this.selectedList.splice(i, 1):this.selectedList.push(this.goodsList[index].id);
-				this.isAllselected = this.selectedList.length == this.goodsList.length;
+				this.isAllselected = this.selectedList.length == this.goodsList.length && this.goodsList.length > 0;
 				this.sum();
 			},
 			//全选

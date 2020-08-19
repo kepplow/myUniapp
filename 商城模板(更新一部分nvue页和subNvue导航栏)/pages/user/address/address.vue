@@ -88,7 +88,7 @@
 			// })
 		},
 		onLoad(e) {
-			this.token = localStorage.getItem('token');
+			this.token = uni.getStorageSync('token');
 			if (e.type == 'select') {
 				this.isSelect = true;
 			}

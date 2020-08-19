@@ -1,5 +1,5 @@
 {
-    "name" : "商城模板(更新一部分nvue页和subNvue导航栏)",
+    "name" : "同城爱享购",
     "appid" : "__UNI__11C4C2F",
     "description" : "",
     "versionName" : "1.2.0",
@@ -62,9 +62,11 @@
     /* 快应用特有相关 */
     "mp-weixin" : {
         /* 小程序特有相关 */
-        "appid" : "",
+        "appid" : "wx0c981166b0099f79",
         "setting" : {
-            "urlCheck" : true
+            "urlCheck" : false,
+            "es6" : true,
+            "minified" : true
         },
         "permission" : {}
     },

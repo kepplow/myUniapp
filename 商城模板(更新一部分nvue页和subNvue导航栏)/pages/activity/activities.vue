@@ -1,6 +1,7 @@
 <template>
 	<view class="backPic">
-		<view class="icon xiangqian" @tap="goback"></view>
+		<!-- <view class="icon xiangqian" @tap="goback"></view> -->
+		<image :src="bg_img" class="bg-img" mode="widthFix"></image>
 		<view class="title-act">活动详情页</view>
 		<view class="font-box">
 			<image class="font-in" src="../../static/img/font-box-2.png"></image>
@@ -53,9 +54,9 @@
 						</view>
 						<view class="list2btnBox">
 							<view class="progress">
-								<view class="progress-done" :style="`width: ${(item.stock/item.amount*100).toFixed(0)}%;`"></view>
+								<view class="progress-done" :style="'width:' + progressWidth(item) + '%;'"></view>
 							</view>
-							<text class="percent">{{(item.stock/item.amount*100).toFixed(0)}}%</text>
+							<text class="percent">{{progressWidth(item)}}%</text>
 							<view class="btn-mai">
 								<view class="nowGou">马上抢购 ></view>
 							</view>
@@ -75,17 +76,29 @@
 	export default {
 		data () {
 			return {
+				bg_img: '',
+				activityId: '',
 				token: '',
 				invalid_time: '',
-				goodsList: []
+				goodsList: [{
+					
+				}]
 			}
 		},
 		onLoad(option) {
-			this.token = localStorage.getItem('token')
-			this.getActivity(option.activityId)
+			console.log(option)
+			this.token = uni.getStorageSync('token')
+			this.activityId = option.activityId
 			this.invalid_time = option.invalid_time
+			this.bg_img = option.bg_img
+		},
+		onShow() {
+			this.getActivity(this.activityId)
 		},
 		methods: {
+			progressWidth (item) {
+				return (item.stock/item.amount*100).toFixed(0)
+			},
 			toGoods (item) {
 				uni.navigateTo({
 					url: '../goods/goods?goodsId=' + item.id + '&isActive=1'
@@ -110,9 +123,16 @@
 		// height: 4460upx;
 		padding-bottom: 60upx;
 		// width: 750upx;
-		background-image: url(../../static/img/backact.png);
 		background-size: 100% auto;
-
+		
+		.bg-img {
+			width: 100%;
+			position: absolute;
+			top: 0;
+			left: 0;
+			height: auto;
+			z-index: -1;
+		}
 		.icon.xiangqian {
 			color: #666666;
 			width: 23px;
@@ -135,7 +155,6 @@
 		.font-box {
 			width: 302upx;
 			height: 638upx;
-			background-image: url(../../static/img/font-box.png);
 			background-size: 100% 100%;
 			// position: absolute;
 			margin-top: 45upx;
@@ -387,6 +406,7 @@
 			.r1boxList2out {
 				margin-top: 27upx;
 				width: 100%;
+				height: 640upx;
 				display: flex;
 				flex-wrap: wrap;
 
@@ -394,12 +414,17 @@
 
 					
 				.r1boxList2 {
+					height: 594upx;
 					margin-bottom: 20upx;
 					padding: 20upx 10upx;
 					border: 3upx solid rgba(85, 196, 125, 1);
 					border-radius: 5upx;
 					margin: 0 10upx;
 					overflow: hidden;
+					display: flex;
+					flex-direction: column;
+					justify-content: space-between;
+					align-items: center;
 					// margin-left: 10upx;
 					// margin-right: 10upx;
 					// margin-bottom: 20upx;
@@ -503,7 +528,7 @@
 					width: 50%;
 					display: flex;
 					justify-content: center;
-					align-items: center;
+					align-items: flex-start;
 					margin-bottom: 20upx;
 					.r1boxList2 {
 						width: 100%;

@@ -21,11 +21,11 @@
 							<image class="orderImage" src="../../../static/img/shouhuo.png"></image>
 							<view class="listFont">待收货</view>
 						</view>
-						<view  class="listBorder" @tap="toOrder(4)">
+						<view class="listBorder" @tap="toOrder(4)">
 							<image class="orderImage" src="../../../static/img/message.png"></image>
 							<view class="listFont">已完成</view>
 						</view>
-						<view  class="listBorder" @tap="toOrder(0)">
+						<view class="listBorder" @tap="toOrder(0)">
 							<image class="orderImage" src="../../../static/img/message.png"></image>
 							<view class="listFont">全部</view>
 						</view>
@@ -52,7 +52,7 @@
 						<view class="leftBox">
 							<image class="chooseImage" src="../../../static/img/myPlace.png"></image>
 							<view class="fontInfo">我的地址</view>
-						</view>	
+						</view>
 						<view class="rightBox">></view>
 					</view>
 					<view class="messageBottom" @tap="toLike">
@@ -72,137 +72,161 @@
 				</view>
 			</view>
 		</view>
-		
+
 	</view>
-	
+
 </template>
 <script>
-export default {
-	data() {
-		return {
-			token: '',
-			headimgurl: '',
-			nickname: ''
-		}
-	},
-	onLoad (option) {
-		console.log(option)
-		let data = {};
-		// 获取query里的code请求用户信息
-		let query = location.search.substr(1)
-		query.split('&').forEach(ele => {
-			data[ele.split('=')[0]] = ele.split('=')[1]
-		})
-		if (data.token) {
-			localStorage.setItem('token', data.token)
-			this.token = data.token
-		} else {
-			this.token = localStorage.getItem('token')
-		}
-		
-	},
-	beforeMount() {
-		this.getUserInfo()
-	},
-	methods: {
-		getUserInfo () {
-			this.$http.post('api/get/user/info', {
-				token: this.token
-			}).then(res=> {
-				this.headimgurl = res.data.headimgurl,
-				this.nickname = res.data.nickname
-			})
+	export default {
+		data() {
+			return {
+				token: '',
+				headimgurl: '',
+				nickname: ''
+			}
 		},
-		toLike () {
-			uni.navigateTo({
-				url: '../../user/keep/keep'
+		onLoad(option) {
+			console.log(option)
+			// #ifdef H5
+			let data = {};
+			// 获取query里的code请求用户信息
+			let query = location.search.substr(1)
+			query.split('&').forEach(ele => {
+				data[ele.split('=')[0]] = ele.split('=')[1]
 			})
+			if (data.token) {
+				localStorage.setItem('token', data.token)
+				this.token = data.token
+			} else {
+				this.token = localStorage.getItem('token')
+			}
+			// #endif
+			
+			// #ifdef MP
+				this.token = uni.getStorageSync('token');
+			// #endif
+
 		},
-		toOrder(index) {
-			uni.navigateTo({
-				url: '../../user/order_list/order_list?tbIndex=' + index
-			})
+		onPullDownRefresh() {
+			this.getUserInfo()
+			setTimeout(function () {
+			    uni.stopPullDownRefresh();
+				
+			}, 1000);
 		},
-		toAddress () {
-			uni.navigateTo({
-				url: '../../user/address/address'
-			})
+		mounted() {
+			this.getUserInfo()
+		},
+		methods: {
+			getUserInfo() {
+				this.$http.post('api/get/user/info', {
+					token: uni.getStorageSync('token')
+				}).then(res => {
+					this.headimgurl = res.data.headimgurl,
+						this.nickname = res.data.nickname
+				})
+			},
+			toLike() {
+				uni.navigateTo({
+					url: '../../user/keep/keep'
+				})
+			},
+			toOrder(index) {
+				uni.navigateTo({
+					url: '../../user/order_list/order_list?tbIndex=' + index
+				})
+			},
+			toAddress() {
+				uni.navigateTo({
+					url: '../../user/address/address'
+				})
+			}
 		}
 	}
-}
-	
 </script>
 <style lang="scss">
-	.userPage{
+	.userPage {
 		min-height: calc(100vh - 50upx);
 		// height: 100%;
 		// background:rgba(246,246,246,1)
 		background-color: #F6F6F6;
 		z-index: -1;
 	}
-	.titleBack{
+
+	.titleBack {
 		width: 100%;
 		height: 410upx;
-		background: linear-gradient(to top,#55C37D,#FFFFFF);
+		background: linear-gradient(to top, #55C37D, #FFFFFF);
 		// position: absolute;
 		display: flex;
 		justify-content: center;
 		align-items: center;
+
 		// z-index: 1;
-		.userInfo{
+		.userInfo {
 			display: flex;
 			flex-direction: column;
 			justify-content: start;
 			align-items: center;
-			.touxiang{
+
+			.touxiang {
 				width: 166upx;
 				height: 166upx;
 				border-radius: 50%;
 			}
 		}
-		.user-name{
+
+		.user-name {
 			color: #FFFFFF;
 			font-size: 34upx;
 			margin-top: 30upx;
 			// width: 100%;
 		}
 	}
-	.allDownborder{
+
+	.allDownborder {
 		margin-top: -25upx;
-		.myorderOut{
+
+		.myorderOut {
 			width: 710upx;
 			height: 208upx;
-			background:rgba(255,255,255,1);
-			border-radius:10px;
+			background: rgba(255, 255, 255, 1);
+			border-radius: 10px;
 			margin-left: 20upx;
-			.myorderIn{
-				.borderBottom{
+
+			.myorderIn {
+				.borderBottom {
 					width: 647upx;
-					border-bottom: 2upx solid rgba(233,233,233,1);
+					border-bottom: 2upx solid rgba(233, 233, 233, 1);
 					margin-left: 32upx;
-					.dingdan{
+
+					.dingdan {
 						font-size: 34upx;
 						padding-bottom: 9upx;
 						padding-top: 13upx;
 					}
 				}
-				.borderDown{
+
+				.borderDown {
 					width: 647upx;
 					display: flex;
 					justify-content: space-between;
 					margin-left: 30upx;
 					margin-top: 14upx;
 					margin-bottom: 14upx;
-					.listBorder{
+
+					.listBorder {
 						display: flex;
 						flex-direction: column;
 						justify-content: start;
 						align-items: center;
-						.orderImage{
+
+						.orderImage {
 							width: 62upx;
 							height: 62upx;
 						}
-						.listFont{
+
+						.listFont {
 							font-size: 24upx;
 							font-weight: bold;
 							padding-top: 18upx;
@@ -211,57 +235,59 @@ export default {
 				}
 			}
 		}
-		.other-choose{
+
+		.other-choose {
 			width: 710upx;
 			height: 660upx;
 			border-radius: 20upx;
-			background: rgba(255,255,255,1);
+			background: rgba(255, 255, 255, 1);
 			// border: 1px solid gray;
 			margin-left: 20upx;
 			margin-top: 17upx;
-			.chooseborderIn{
-				.messageBottom{
+
+			.chooseborderIn {
+				.messageBottom {
 					width: 647upx;
-					border-bottom: 2upx solid rgba(233,233,233,1);
-					margin-left: 32upx;
+					border-bottom: 2upx solid rgba(233, 233, 233, 1);
+					padding: 20upx 32upx;
 					display: flex;
 					justify-content: space-between;
+					align-items: center;
 					// align-items: center;
-					.leftBox{
-						.chooseImage{
+					.leftBox {
+						display: flex;
+						align-items: center;
+						.chooseImage {
 							width: 38upx;
 							height: 38upx;
-							vertical-align: baseline;
-							margin-top: 20upx;
-							// margin-bottom: 20upx;
 						}
-						.fontInfo{
-							font-size: 28upx;
-							padding-bottom: 20upx;
-							// padding-top: 22upx;
-							display: inline-block;
-							margin-left: 19upx;
+
+						.fontInfo {
+							margin-left: 20upx;
+							font-size: 32upx;
 						}
 					}
-					.rightBox{
+
+					.rightBox {
 						// font-size: 28upx;
 						width: 16upx;
 						height: 30upx;
 						color: #999999;
-						margin-top:24upx;
-						margin-right:15upx;
+						display: flex;
+						align-items: center;
+						font-size: 32upx;
 					}
-					.rightBoxnum{
+
+					.rightBoxnum {
 						font-size: 28upx;
 						// width: 16upx;
 						// height: 30upx;
 						color: #656565;
-						margin-top:24upx;
-						margin-right:15upx;
+						display: flex;
+						align-items: center;
 					}
 				}
 			}
 		}
 	}
-	
 </style>

@@ -25,14 +25,11 @@
 		<!-- 轮播图 -->
 		<view class="swiper">
 			<view class="swiper-box">
-				<swiper circular="true" autoplay="true" @change="swiperChange">
+				<swiper circular="true" autoplay="true" @change="swiperChange" :indicator-dots="true" indicator-active-color="#bbb">
 					<swiper-item v-for="swiper in swiperList" :key="swiper.id">
 						<image :src="swiper.img_address" @tap="toSwiper(swiper)"></image>
 					</swiper-item>
 				</swiper>
-				<view class="indicator">
-					<view class="dots" v-for="(swiper, index) in swiperList" :class="[currentSwiper >= index ? 'on' : '']" :key="index"></view>
-				</view>
 			</view>
 		</view>
 		<!-- 分类列表 -->
@@ -89,7 +86,7 @@
 				</view>
 			</view>
 		</view> -->
-		
+
 		<view class="sub-title">
 			本周热卖
 		</view>
@@ -97,8 +94,9 @@
 		<view class="goods-list">
 			<view class="product-list">
 				<view class="product" v-for="product in productList" :key="product.goods_id" @tap="toGoods(product)">
-					<image class="goods-image" mode="widthFix" :src="product.goods_img && product.goods_img[0]"></image>
-					<image v-if="product.is_collection !== undefined" @tap.stop="changeLike(product.goods_id)" class="like" :src="product.is_collection ? '../../../static/img/head-rad@2x.png' : '../../../static/img/head@2x.png'" mode=""></image>
+					<image class="goods-image" :src="product.goods_img && product.goods_img[0]"></image>
+					<image v-if="product.is_collection !== undefined" @tap.stop="changeLike(product.goods_id)" class="like" :src="product.is_collection ? '../../../static/img/head-rad@2x.png' : '../../../static/img/head@2x.png'"
+					 mode=""></image>
 					<view class="name">{{ product.title }}</view>
 					<view class="explain">{{ product.explain }}</view>
 					<view class="info">
@@ -112,20 +110,19 @@
 		<view class="sub-title">
 			为您推荐
 		</view>
-		
+
 		<view class="goods-list-2">
-			<view class="item" v-for="item in categoryList" :key="item.id" @tap="toGoods(item)">
-				<image :src="item.goods_img && item.goods_img[0]"></image>
-				<view class="title">{{item.title}}</view>
-				<view class="price">￥<text>{{item.actual_price}}</text></view>
+			<view class="item" v-for="category in categoryList" :key="category.goods_id" @tap="toGoods(category)">
+				<image :src="category.goods_img && category.goods_img[0]"></image>
+				<view class="title">{{category.title}}</view>
+				<view class="price">￥<text>{{category.actual_price}}</text></view>
 			</view>
-			
+
 		</view>
 	</view>
 </template>
 
 <script>
-	
 	export default {
 		data() {
 			return {
@@ -143,16 +140,15 @@
 				// 轮播图片
 				swiperList: [],
 				// 为您推荐列表
-				categoryList: [],
+				categoryList: [{}],
 				// Promotion: [],
 				//本周热卖列表
 				productList: [],
 				loadingText: '正在加载...'
 			};
 		},
-		
+
 		onLoad() {
-			
 			// #ifdef APP-PLUS
 			this.nVueTitle = uni.getSubNVueById('homeTitleNvue');
 			this.nVueTitle.onMessage(res => {
@@ -164,31 +160,35 @@
 			this.showHeader = false;
 			this.statusHeight = plus.navigator.getStatusbarHeight();
 			// #endif
-			
+
 		},
 		beforeMount() {
-			this.token = localStorage.getItem('token')
+			// this.token = localStorage.getItem('token')
+			this.token = uni.getStorageSync('token')
+			
 			this.renderSwiper()
 			this.randerActivity()
 			this.randergoods()
 		},
-		
+
 		methods: {
-			toActivity () {
+			toActivity() {
 				uni.navigateTo({
-					url: '../../activity/activities?activityId=' + this.activity.id + '&invalid_time=' + this.activity.invalid_time
+					url: '../../activity/activities?activityId=' + this.activity.id + '&invalid_time=' + this.activity.invalid_time + '&bg_img=' + this.activity.bg_img
 				})
 			},
 			// 添加至购物车
-			addCar (goods) {
+			addCar(goods) {
 				this.$http.post('api/user/add/car', {
 					token: this.token,
 					goodsId: goods.goods_id,
 					num: 1,
 					isActive: '2'
-				}).then(res=> {
+				}).then(res => {
 					if (res.message == '添加成功') {
-						uni.showTabBarRedDot({index:2});
+						uni.showTabBarRedDot({
+							index: 2
+						});
 					}
 					uni.showToast({
 						icon: 'none',
@@ -197,7 +197,7 @@
 				})
 			},
 			// 收藏状态改变
-			changeLike (id) {
+			changeLike(id) {
 				if (this.likeFlag) {
 					uni.showToast({
 						icon: 'none',
@@ -206,15 +206,15 @@
 					return
 				}
 				clearTimeout(this.timer)
-				this.$http.post('api/user/goods/collect',{
+				this.$http.post('api/user/goods/collect', {
 					token: this.token,
 					goodsID: id
-				}).then(res=> {
+				}).then(res => {
 					console.log(res)
 					this.likeFlag = true
-					this.timer = setTimeout(()=>{
+					this.timer = setTimeout(() => {
 						this.likeFlag = false
-					},3000)
+					}, 3000)
 					if (res.message == 'OK') {
 						this.randergoods()
 					}
@@ -222,37 +222,38 @@
 						icon: 'none',
 						title: res.message
 					})
-				},rej => {
+				}, rej => {
 					uni.showToast({
 						icon: 'none',
 						title: rej + '请稍后再试'
 					})
 				})
 			},
-			randergoods () {
-				this.$http.post('api/home/class/goods',{
+			randergoods() {
+				this.$http.post('api/home/class/goods', {
 					token: this.token
-				}).then(res=> {
-					
-					let product = res.data.find(ele=> ele.name == '本周热卖')
-					let categoryList = res.data.find(ele=> ele.name == '为您推荐')
-					
+				}).then(res => {
+
+					let product = res.data.find(ele => ele.name == '本周热卖')
+					let categoryList = res.data.find(ele => ele.name == '为您推荐')
+					console.log(categoryList)
 					this.productList = product.goods_list
+					
 					if (categoryList.goods_list.length > 4) {
-						this.categoryList = categoryList.goods_list.splice(0,4)
+						this.categoryList = categoryList.goods_list.splice(0, 4)
 					} else {
 						this.categoryList = categoryList.goods_list
 					}
 				})
 			},
-			randerActivity () {
-				this.$http.post('api/home/activity').then(res=> {
+			randerActivity() {
+				this.$http.post('api/home/activity').then(res => {
 					this.activity = res.data[0]
 				})
 			},
 			// 获取轮播图，渲染
-			renderSwiper () {
-				this.$http.post('api/home/banner').then(res=> {
+			renderSwiper() {
+				this.$http.post('api/home/banner').then(res => {
 					console.log(res)
 					this.swiperList = res.data
 				})
@@ -275,9 +276,12 @@
 				// 	title: e.src,
 				// 	icon: 'none'
 				// });
-				if (e.url) {
-					location.href = e.url
-				}
+				// #ifdef H5
+					if (e.url) {
+						location.href = e.url
+					}
+				// #endif
+				
 			},
 			//分类跳转
 			toCategory(e) {
@@ -296,10 +300,11 @@
 			},
 			//商品跳转
 			toGoods(e) {
-				uni.showToast({
-					title: '商品' + e.goods_id,
-					icon: 'none'
-				});
+				// console.log(e)
+				// uni.showToast({
+				// 	title: '商品' + e.goods_id,
+				// 	icon: 'none'
+				// });
 				uni.navigateTo({
 					url: '../../goods/goods?goodsId=' + e.goods_id
 				});
@@ -605,6 +610,7 @@
 			width: 100%;
 			display: flex;
 			background-color: white;
+
 			.left {
 				width: 50%;
 				flex-basis: 1;
@@ -719,12 +725,14 @@
 			}
 		}
 	}
+
 	.sub-title {
 		margin: 20upx 30upx;
 		color: $uni-color-primary;
 		line-height: $uni-img-size-base;
 		font-size: 40upx;
 	}
+
 	.goods-list {
 
 		.loading-text {
@@ -736,7 +744,7 @@
 			color: #979797;
 			font-size: 24upx;
 		}
-		
+
 		.product-list {
 			width: 92%;
 			padding: 0 4% 3vw 4%;
@@ -751,11 +759,13 @@
 				margin: 0 0 15upx 0;
 				box-shadow: 0upx 5upx 25upx rgba(0, 0, 0, 0.1);
 				position: relative;
+
 				.goods-image {
 					width: 100%;
+					height: 332upx;
 					border-radius: 20upx 20upx 0 0;
 				}
-				
+
 				.like {
 					width: 40upx;
 					height: 40upx;
@@ -763,6 +773,7 @@
 					right: 10upx;
 					top: 15upx;
 				}
+
 				.name {
 					width: 92%;
 					padding: 10upx 4%;
@@ -773,6 +784,7 @@
 					overflow: hidden;
 					font-size: 30upx;
 				}
+
 				.explain {
 					font-size: 24upx;
 					padding: 10upx 4%;
@@ -782,8 +794,12 @@
 					-webkit-line-clamp: 2;
 					text-align: justify;
 					overflow: hidden;
+					margin-bottom: 60upx;
 				}
+
 				.info {
+					position: absolute;
+					bottom: 0;
 					display: flex;
 					justify-content: space-between;
 					align-items: flex-end;
@@ -803,16 +819,15 @@
 						border-radius: 50%;
 						width: 35upx;
 						height: 35upx;
-						display: flex;
-						justify-content: center;
 						align-items: center;
-						vertical-align: middle;
-						
+						line-height: 32upx;
+						text-align: center;
 					}
 				}
 			}
 		}
 	}
+
 	.goods-list-2 {
 		margin: 0 30upx 30upx 30upx;
 		width: calc(100% - 60upx);
@@ -823,15 +838,18 @@
 		justify-content: space-around;
 		align-items: center;
 		padding: 30upx 0;
+
 		.item {
 			flex: 1;
 			display: flex;
 			flex-direction: column;
 			align-items: center;
+
 			image {
 				width: 120upx;
 				height: 120upx;
 			}
+
 			.title {
 				max-width: 170upx;
 				font-size: 30upx;
@@ -840,6 +858,7 @@
 				text-overflow: ellipsis;
 				white-space: nowrap;
 			}
+
 			.price {
 				max-width: 170upx;
 				overflow: hidden;
@@ -847,6 +866,7 @@
 				white-space: nowrap;
 				color: #F21409;
 				font-size: 24upx;
+
 				text {
 					font-size: 36upx;
 				}

@@ -273,16 +273,29 @@
 			// #endif
 			//option为object类型，会序列化上个页面传递的参数
 			console.log(option.cid); //打印出上个页面传递的参数。
-
+			this.token = uni.getStorageSync('token')
 			this.isActive = option.isActive ? option.isActive : '2'
 			if (this.isActive == 1) {
 				this.getActivityGoods(option.goodsId)
 			} else {
 				this.getGoods(option.goodsId)
 			}
+			// #ifdef H5
+			this.share()
+			// #endif
+			
 		},
+		// #ifdef MP
+		onShareAppMessage() {
+			return {
+				title: this.goodsData.title,
+				path: '/pages/goods/goods?goodsId=' + this.goodsData.goods_id,
+				imageUrl: this.goodsData.goods_img[0]
+			}
+		},
+		// #endif
+		
 		onReady() {
-			this.token = localStorage.getItem('token')
 			this.calcAnchor(); //计算锚点高度，页面数据是ajax加载时，请把此行放在数据渲染完成事件中执行以保证高度计算正确
 
 		},
@@ -299,237 +312,272 @@
 			this.afterHeaderzIndex = e.scrollTop > 0 ? 11 : 10;
 		},
 		//上拉加载，需要自己在page.json文件中配置"onReachBottomDistance"
-		onReachBottom() {
-			uni.showToast({
-				title: '触发上拉加载'
-			});
-		},
+		// onReachBottom() {
+		// 	uni.showToast({
+		// 		title: '触发上拉加载'
+		// 	});
+		// },
 		mounted() {
+			
 
 		},
 		methods: {
-			tocar() {
-				uni.switchTab({
-					url: '../tabBar/cart/cart'
+			callJsSDK(config) {
+				let that = this
+				console.log(config)
+				console.log(11111111111111)
+				this.wx.config({
+					// debug: true, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+					...config,
+					jsApiList: ["updateAppMessageShareData", "updateTimelineShareData"] // 必填，需要使用的JS接口列表
 				})
-			},
-			getActivityGoods(id) {
-				this.$http.post('api/active/goods', {
-					id
-				}).then(res => {
-					console.log(res)
-					if (res.code == 200) {
-						this.goodsData.goods_img = res.data.goods.goods_img
-						this.goodsData.actual_price = res.data.active.final_price
-						this.goodsData.price = res.data.active.original_price
-						this.goodsData.title = res.data.goods.title
-						this.goodsData.explain = res.data.goods.explain
-						this.goodsData.stock = res.data.active.stock
-						this.goodsData.goods_id = res.data.active.goods_id
-						this.goodsData.num = 1
-						this.goodsData.content = res.data.goods.goods_content
-					}
-				})
-			},
-			getGoods(goodsId) {
-				this.$http.post('api/get/goods/details', {
-					goodsId
-				}).then(res => {
-					console.log(res)
-					this.goodsData = res.data
-				})
-			},
-			//轮播图指示器
-			swiperChange(event) {
-				this.currentSwiper = event.detail.current;
-			},
-			//消息列表
-			toMsg() {
-				uni.navigateTo({
-					url: '../msg/msg'
-				})
-			},
-			// 客服
-			toChat() {
-				uni.navigateTo({
-					url: "../msg/chat/chat?name=客服008"
-				})
+				this.wx.ready(function() {
+					console.log(location)
+					// config信息验证后会执行ready方法，所有接口调用都必须在config接口获得结果之后，config是一个客户端的异步操作，所以如果需要在页面加载时就调用相关接口，则须把相关接口放在ready函数中调用来确保正确执行。对于用户触发时才调用的接口，则可以直接调用，不需要放在ready函数中。
+					that.wx.updateAppMessageShareData({
+						title: that.goodsData.title, // 分享标题
+						desc: that.goodsData.explain, // 分享描述
+						link: location.href, // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+						imgUrl: that.goodsData.goods_img[0], // 分享图标
+						success: function() {
+							// 设置成功
+							uni.showToast({
+								title: '分享设置成功'
+							})
+						}
+					})
+				});
 			},
 			// 分享
 			share() {
-				this.shareClass = 'show';
-			},
-			hideShare() {
-				this.shareClass = 'hide';
-				setTimeout(() => {
-					this.shareClass = 'none';
-				}, 150);
-			},
-			//收藏
-			keep() {
-				this.isKeep = this.isKeep ? false : true;
-			},
-			// 加入购物车
-			joinCart() {
-				this.$http.post('api/user/add/car', {
-					token: this.token,
-					goodsId: this.goodsData.goods_id,
-					num: 1,
-					isActive: this.isActive
-				}).then(res => {
-					uni.showToast({
-						icon: 'none',
-						title: res.message
-					});
-					if (res.message == '添加成功') {
-						uni.showTabBarRedDot({
-							index: 2
-						});
-					}
-				})
+				let that = this
+				this.$http.post('api/get/jsapi', {
+							url: location.href
+						}).then(res => {
+							console.log(res.data)
+							if (res.data) {
+								that.callJsSDK(res.data)
+							}
+						})
+					},
+					tocar() {
+						uni.switchTab({
+							url: '../tabBar/cart/cart'
+						})
+					},
+					getActivityGoods(id) {
+						this.$http.post('api/active/goods', {
+							id
+						}).then(res => {
+							console.log(res)
+							if (res.code == 200) {
+								this.goodsData.goods_img = res.data.goods.goods_img
+								this.goodsData.actual_price = res.data.active.final_price
+								this.goodsData.price = res.data.active.original_price
+								this.goodsData.title = res.data.goods.title
+								this.goodsData.explain = res.data.goods.explain
+								this.goodsData.stock = res.data.active.stock
+								this.goodsData.goods_id = res.data.active.goods_id
+								this.goodsData.num = 1
+								this.goodsData.content = res.data.goods.goods_content
+							}
+						})
+					},
+					getGoods(goodsId) {
+						this.$http.post('api/get/goods/details', {
+							goodsId
+						}).then(res => {
+							console.log(res)
+							this.goodsData = res.data
+						})
+					},
+					//轮播图指示器
+					swiperChange(event) {
+						this.currentSwiper = event.detail.current;
+					},
+					//消息列表
+					toMsg() {
+						uni.navigateTo({
+							url: '../msg/msg'
+						})
+					},
+					// 客服
+					toChat() {
+						uni.navigateTo({
+							url: "../msg/chat/chat?name=客服008"
+						})
+					},
+					hideShare() {
+						this.shareClass = 'hide';
+						setTimeout(() => {
+							this.shareClass = 'none';
+						}, 150);
+					},
+					//收藏
+					keep() {
+						this.isKeep = this.isKeep ? false : true;
+					},
+					// 加入购物车
+					joinCart() {
+						this.$http.post('api/user/add/car', {
+							token: this.token,
+							goodsId: this.goodsData.goods_id,
+							num: 1,
+							isActive: this.isActive
+						}).then(res => {
+							uni.showToast({
+								icon: 'none',
+								title: res.message
+							});
+							if (res.message == '添加成功') {
+								uni.showTabBarRedDot({
+									index: 2
+								});
+							}
+						})
 
-			},
-			//立即购买
-			buy() {
-				// if(this.selectSpec==null){
-				// 	return this.showSpec(()=>{
-				// 		this.toConfirmation();
-				// 	});
-				// }
-				let goodsData = JSON.parse(JSON.stringify(this.goodsData))
-				
-					goodsData.goods_img = goodsData.goods_img[0]
-					goodsData.goods_title = goodsData.title
-					goodsData.price = goodsData.actual_price
-					goodsData.num = 1
-					goodsData.is_active = this.isActive
-				
-				uni.setStorage({
-					key: 'buylist',
-					data: [goodsData],
-					success: () => {
+					},
+					//立即购买
+					buy() {
+						// if(this.selectSpec==null){
+						// 	return this.showSpec(()=>{
+						// 		this.toConfirmation();
+						// 	});
+						// }
+						let goodsData = JSON.parse(JSON.stringify(this.goodsData))
+
+						goodsData.goods_img = goodsData.goods_img[0]
+						goodsData.goods_title = goodsData.title
+						goodsData.price = goodsData.actual_price
+						goodsData.num = 1
+						goodsData.is_active = this.isActive
+
+						uni.setStorage({
+							key: 'buylist',
+							data: [goodsData],
+							success: () => {
+								uni.navigateTo({
+									url: '../order/confirmation'
+								})
+							}
+						})
+						// this.toConfirmation();
+					},
+					//商品评论
+					// toRatings(){
+					// 	uni.navigateTo({
+					// 		url:'ratings/ratings'
+					// 	})
+					// },
+					//跳转确认订单页面
+					toConfirmation() {
+						// let tmpList=[];
+						// let goods = {id:this.goodsData.id,img:'../../static/img/goods/p1.jpg',name:this.goodsData.name,spec:'规格:'+this.goodsData.spec[this.selectSpec],price:this.goodsData.price,number:this.goodsData.number};
+						// tmpList.push(goods);
+						// uni.setStorage({
+						// 	key:'buylist',
+						// 	data:tmpList,
+						// 	success: () => {
+
+						// 	}
+						// })
 						uni.navigateTo({
 							url: '../order/confirmation'
 						})
+					},
+					//跳转评论列表
+					showComments(goodsid) {
+
+					},
+					//选择规格
+					setSelectSpec(index) {
+						this.selectSpec = index;
+					},
+					//减少数量
+					sub() {
+						if (this.goodsData.number <= 1) {
+							return;
+						}
+						this.goodsData.number--;
+					},
+					//增加数量
+					add() {
+						this.goodsData.number++;
+					},
+					//跳转锚点
+					toAnchor(index) {
+						this.selectAnchor = index;
+						uni.pageScrollTo({
+							scrollTop: this.anchorlist[index].top,
+							duration: 200
+						});
+					},
+					//计算锚点高度
+					calcAnchor() {
+						this.anchorlist = [{
+								name: '主图',
+								top: 0
+							},
+							{
+								name: '详情',
+								top: 0
+							},
+							// {name:'评价',top:0},
+						]
+						let commentsView = uni.createSelectorQuery().select("#comments");
+						commentsView.boundingClientRect((data) => {
+							let statusbarHeight = 0;
+							//APP内还要计算状态栏高度
+							// #ifdef APP-PLUS
+							statusbarHeight = plus.navigator.getStatusbarHeight()
+							// #endif
+							let headerHeight = uni.upx2px(100);
+							this.anchorlist[1].top = data.top - headerHeight - statusbarHeight;
+							// this.anchorlist[2].top = data.bottom - headerHeight - statusbarHeight;
+
+						}).exec();
+					},
+					//返回上一页
+					back() {
+						uni.navigateBack();
+					},
+					//服务弹窗
+					showService() {
+						console.log('show');
+						this.serviceClass = 'show';
+					},
+					//关闭服务弹窗
+					hideService() {
+						this.serviceClass = 'hide';
+						setTimeout(() => {
+							this.serviceClass = 'none';
+						}, 200);
+					},
+					//规格弹窗
+					showSpec(fun) {
+						console.log('show');
+						this.specClass = 'show';
+						this.specCallback = fun;
+					},
+					specCallback() {
+						return;
+					},
+					//关闭规格弹窗
+					hideSpec() {
+						this.specClass = 'hide';
+						//回调
+
+						this.selectSpec && this.specCallback && this.specCallback();
+						this.specCallback = false;
+						setTimeout(() => {
+							this.specClass = 'none';
+						}, 200);
+					},
+					discard() {
+						//丢弃
 					}
-				})
-				// this.toConfirmation();
-			},
-			//商品评论
-			// toRatings(){
-			// 	uni.navigateTo({
-			// 		url:'ratings/ratings'
-			// 	})
-			// },
-			//跳转确认订单页面
-			toConfirmation() {
-				// let tmpList=[];
-				// let goods = {id:this.goodsData.id,img:'../../static/img/goods/p1.jpg',name:this.goodsData.name,spec:'规格:'+this.goodsData.spec[this.selectSpec],price:this.goodsData.price,number:this.goodsData.number};
-				// tmpList.push(goods);
-				// uni.setStorage({
-				// 	key:'buylist',
-				// 	data:tmpList,
-				// 	success: () => {
-
-				// 	}
-				// })
-				uni.navigateTo({
-					url: '../order/confirmation'
-				})
-			},
-			//跳转评论列表
-			showComments(goodsid) {
-
-			},
-			//选择规格
-			setSelectSpec(index) {
-				this.selectSpec = index;
-			},
-			//减少数量
-			sub() {
-				if (this.goodsData.number <= 1) {
-					return;
-				}
-				this.goodsData.number--;
-			},
-			//增加数量
-			add() {
-				this.goodsData.number++;
-			},
-			//跳转锚点
-			toAnchor(index) {
-				this.selectAnchor = index;
-				uni.pageScrollTo({
-					scrollTop: this.anchorlist[index].top,
-					duration: 200
-				});
-			},
-			//计算锚点高度
-			calcAnchor() {
-				this.anchorlist = [{
-						name: '主图',
-						top: 0
-					},
-					{
-						name: '详情',
-						top: 0
-					},
-					// {name:'评价',top:0},
-				]
-				let commentsView = uni.createSelectorQuery().select("#comments");
-				commentsView.boundingClientRect((data) => {
-					let statusbarHeight = 0;
-					//APP内还要计算状态栏高度
-					// #ifdef APP-PLUS
-					statusbarHeight = plus.navigator.getStatusbarHeight()
-					// #endif
-					let headerHeight = uni.upx2px(100);
-					this.anchorlist[1].top = data.top - headerHeight - statusbarHeight;
-					// this.anchorlist[2].top = data.bottom - headerHeight - statusbarHeight;
-
-				}).exec();
-			},
-			//返回上一页
-			back() {
-				uni.navigateBack();
-			},
-			//服务弹窗
-			showService() {
-				console.log('show');
-				this.serviceClass = 'show';
-			},
-			//关闭服务弹窗
-			hideService() {
-				this.serviceClass = 'hide';
-				setTimeout(() => {
-					this.serviceClass = 'none';
-				}, 200);
-			},
-			//规格弹窗
-			showSpec(fun) {
-				console.log('show');
-				this.specClass = 'show';
-				this.specCallback = fun;
-			},
-			specCallback() {
-				return;
-			},
-			//关闭规格弹窗
-			hideSpec() {
-				this.specClass = 'hide';
-				//回调
-
-				this.selectSpec && this.specCallback && this.specCallback();
-				this.specCallback = false;
-				setTimeout(() => {
-					this.specClass = 'none';
-				}, 200);
-			},
-			discard() {
-				//丢弃
 			}
-		}
-	};
+		};
 </script>
 
 <style lang="scss">
@@ -905,6 +953,8 @@
 	}
 
 	.description {
+		margin-bottom: 100upx;
+
 		.title {
 			width: 100%;
 			height: 80upx;

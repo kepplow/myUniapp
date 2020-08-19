@@ -24,7 +24,7 @@
 			<view class="table">配送时间:</view>
 			<view class="uni-list-cell">
 				<view class="uni-list-cell-db">
-					<picker mode="date" :value="deliverydate" @change="bindDateChange">
+					<picker mode="date" fields="day" :value="deliverydate" @change="bindDateChange">
 						<view class="uni-input">{{deliverydate}}</view>
 					</picker>
 
@@ -119,8 +119,8 @@
 	export default {
 		data() {
 			return {
-				deliverytime: new Date().toLocaleTimeString().substring(2, new Date().toLocaleTimeString().length - 3),
-				deliverydate: new Date().toLocaleDateString().replace(/\//g, '-'),
+				deliverytime: this.getDeliverytime(),
+				deliverydate: this.getDeliverydate(),
 				token: '',
 				buylist: [], //订单列表
 				goodsPrice: 0.0, //商品合计价格
@@ -160,7 +160,7 @@
 			})
 		},
 		onLoad() {
-			this.token = localStorage.getItem("token")
+			this.token = uni.getStorageSync('token')
 			this.$http.post('api/get/user/address', {
 				token: this.token
 			}).then(res => {
@@ -184,10 +184,19 @@
 			},
 			endDate() {
 				return this.getDate('end');
-			}
+			},
+			
 		},
 		methods: {
-
+			getDeliverytime () {
+				let str = new Date();
+				return str.getHours() + ":" + str.getMinutes()
+			},
+			getDeliverydate() {
+				let str = new Date()
+				return str.getFullYear() + "-" +
+					(str.getMonth() + 1) + "-" + str.getDate()
+			},
 			getDate(type) {
 				const date = new Date();
 				let year = date.getFullYear();
@@ -251,7 +260,7 @@
 				// 	})
 				// }, 1000)
 				let goodsList = []
-				this.buylist.forEach(ele=> {
+				this.buylist.forEach(ele => {
 					goodsList.push({
 						id: ele.goods_id,
 						num: ele.num,
@@ -270,11 +279,27 @@
 					console.log(res)
 					// 发起支付
 					if (res.data.orderId) {
-						this.$http.post('api/wx/pay', {
+						// #ifdef H5
+						let pay_type = 1
+						let url = 'api/wx/pay'
+						// #endif
+						// #ifdef MP
+						let pay_type = 2
+						let url = 'api/applets/wx/pay'
+						// #endif
+
+						this.$http.post(url, {
 							token: this.token,
-							order_id: res.data.orderId
+							order_id: res.data.orderId,
+							pay_type
 						}).then(res => {
+							// #ifdef H5
 							this.jsApiCall(JSON.parse(res.data.pay));
+							// #endif
+
+							// #ifdef MP
+							this.MPPay(JSON.parse(res.data.pay))
+							// #endif
 						})
 					}
 					uni.showToast({
@@ -284,13 +309,37 @@
 				})
 
 			},
-			jsApiCall(jsApiParameters)
-			{
+			MPPay(payData) {
+				uni.requestPayment({
+					...payData,
+					provider: 'wxpay',
+					success: function(res) {
+						uni.hideLoading();
+						uni.showToast({
+							title: '支付成功！',
+							icon: 'none'
+						})
+						setTimeout(() => {
+							uni.navigateTo({
+								url: '../user/order_list/order_list?tbIndex=0'
+							})
+						}, 500)
+					},
+					fail: function(err) {
+						uni.hideLoading();
+						uni.showToast({
+							title: '支付失败！',
+							icon: 'none'
+						})
+					}
+				});
+			},
+			jsApiCall(jsApiParameters) {
 				WeixinJSBridge.invoke(
 					'getBrandWCPayRequest',
 					jsApiParameters,
-					function(res){
-						if(res.err_msg == "get_brand_wcpay_request:ok" ){
+					function(res) {
+						if (res.err_msg == "get_brand_wcpay_request:ok") {
 							// 使用以上方式判断前端返回,微信团队郑重提示：
 							//res.err_msg将在用户支付成功后返回ok，但并不保证它绝对可靠。
 							uni.hideLoading();
@@ -298,12 +347,16 @@
 								title: '支付成功！',
 								icon: 'none'
 							})
-							uni.navigateTo({
-								url: '../tabBar/user/user'
-							})
+							setTimeout(() => {
+								uni.navigateTo({
+									url: '../user/order_list/order_list?tbIndex=0'
+								})
+							}, 500)
+
 						} else {
 							uni.showToast({
-								title: res.err_code+res.err_desc+res.err_msg
+								icon: 'none',
+								title: '支付失败'
 							})
 						}
 					}
@@ -321,9 +374,10 @@
 
 <style lang="scss">
 	/* #ifdef H5 */
-	    uni-page-head {
-	        display: none;
-	    }
+	uni-page-head {
+		display: none;
+	}
+
 	/* #endif */
 	.addr {
 		width: 86%;
@@ -368,9 +422,11 @@
 		margin: 30upx auto 20upx auto;
 		box-shadow: 0upx 5upx 20upx rgba(0, 0, 0, 0.1);
 		border-radius: 20upx;
+
 		.table {
 			font-size: 34upx;
 		}
+
 		.uni-list-cell-db {
 			display: inline-block;
 			color: #999999;

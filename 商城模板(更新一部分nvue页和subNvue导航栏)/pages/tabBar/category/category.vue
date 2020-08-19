@@ -54,8 +54,10 @@
 				categoryList:[]
 			}
 		},
-		beforeMount() {
-			this.token = localStorage.getItem('token')
+		onLoad() {
+			this.token = uni.getStorageSync('token')
+		},
+		onShow() {
 			this.randerCategory()
 		},
 		
@@ -267,7 +269,7 @@
 					display: flex;
 					flex-wrap: wrap;
 					.box{
-						width: calc(71.44vw / 3);
+						width: calc(70vw / 3);
 						margin-bottom: 30upx;
 						display: flex;
 						justify-content: center;

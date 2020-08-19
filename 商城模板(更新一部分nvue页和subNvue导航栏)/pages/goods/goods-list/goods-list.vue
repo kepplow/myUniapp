@@ -21,7 +21,7 @@
 		<!-- 商品列表 -->
 		<view class="goods-list">
 			<view class="product-list">
-				<view class="product" v-for="(goods) in goodsList" :key="goods.goods_id" @tap="toGoods(goods)">
+				<view class="product" v-for="(goods) in goodsList" :key="goods.id" @tap="toGoods(goods)">
 					<image mode="widthFix" :src="goods.goods_img"></image>
 					<view class="name">{{goods.title}}</view>
 					<view class="info">
@@ -54,7 +54,7 @@
 			};
 		},
 		onLoad: function (option) { //option为object类型，会序列化上个页面传递的参数
-			this.token = localStorage.getItem('token')
+			this.token = uni.getStorageSync('token')
 			console.log(option.cid); //打印出上个页面传递的参数。
 			if (option.cid != undefined) {
 				this.randerGoods(option.cid)
@@ -113,7 +113,7 @@
 			},
 			//商品跳转
 			toGoods(e){
-				uni.showToast({title: '商品'+e.goods_id,icon:"none"});
+				// uni.showToast({title: '商品'+e.goods_id,icon:"none"});
 				uni.navigateTo({
 					url: '../goods?goodsId=' + e.id 
 				});
@@ -148,29 +148,29 @@
 			}
 		},
 		//下拉刷新，需要自己在page.json文件中配置开启页面下拉刷新 "enablePullDownRefresh": true
-		onPullDownRefresh() {
-		    setTimeout(()=>{
-				this.reload();
-		        uni.stopPullDownRefresh();
-		    }, 1000);
-		},
+		// onPullDownRefresh() {
+		//     setTimeout(()=>{
+		// 		this.reload();
+		//         uni.stopPullDownRefresh();
+		//     }, 1000);
+		// },
 		//上拉加载，需要自己在page.json文件中配置"onReachBottomDistance"
-		onReachBottom(){
-			uni.showToast({title: '触发上拉加载'});
-			let len = this.goodsList.length;
-			if(len>=40){
-				this.loadingText="到底了";
-				return false;
-			}else{
-				this.loadingText="正在加载...";
-			}
-			let end_goods_id = this.goodsList[len-1].goods_id;
-			for(let i=1;i<=10;i++){
-				let goods_id = end_goods_id+i;
-				let p = { goods_id: goods_id, img: '/static/img/goods/p'+(goods_id%10==0?10:goods_id%10)+'.jpg', name: '商品名称商品名称商品名称商品名称商品名称', price: '￥168', slogan:'1235人付款' };
-				this.goodsList.push(p);
-			}
-		}
+		// onReachBottom(){
+		// 	uni.showToast({title: '触发上拉加载'});
+		// 	let len = this.goodsList.length;
+		// 	if(len>=40){
+		// 		this.loadingText="到底了";
+		// 		return false;
+		// 	}else{
+		// 		this.loadingText="正在加载...";
+		// 	}
+		// 	let end_goods_id = this.goodsList[len-1].goods_id;
+		// 	for(let i=1;i<=10;i++){
+		// 		let goods_id = end_goods_id+i;
+		// 		let p = { goods_id: goods_id, img: '/static/img/goods/p'+(goods_id%10==0?10:goods_id%10)+'.jpg', name: '商品名称商品名称商品名称商品名称商品名称', price: '￥168', slogan:'1235人付款' };
+		// 		this.goodsList.push(p);
+		// 	}
+		// }
 	}
 </script>
 
